@@ -3,6 +3,7 @@ import {
   createContainer,
   type AppContainer,
 } from '@app/dependency-injection/createContainer';
+import type { DownloadedFileProcessor } from '@features/downloads';
 import type { HttpClient } from '@infrastructure/http/HttpClient';
 import { FakePlaybackEngine } from './FakePlaybackEngine';
 import { NodeSqliteDriver } from './NodeSqliteDriver';
@@ -11,6 +12,7 @@ import {
   FakeDocumentPicker,
   FakeFileDownloader,
   FakeNetworkMonitor,
+  FakeYouTubeExtractor,
   InMemoryFileStorage,
   sequentialIds,
   silentLogger,
@@ -25,19 +27,23 @@ export interface TestApp {
   picker: FakeDocumentPicker;
   clock: FakeClock;
   http: HttpClient & { responses: Map<string, unknown> };
+  youtube: FakeYouTubeExtractor;
 }
 
 /**
  * Full composition root with real use cases and SQLite repositories; only
  * native/platform ports are replaced by deterministic fakes.
  */
-export async function createTestApp(options: { dbPath?: string } = {}): Promise<TestApp> {
+export async function createTestApp(
+  options: { dbPath?: string; fileProcessor?: DownloadedFileProcessor } = {},
+): Promise<TestApp> {
   const storage = new InMemoryFileStorage();
   const downloader = new FakeFileDownloader(storage);
   const network = new FakeNetworkMonitor();
   const engine = new FakePlaybackEngine();
   const picker = new FakeDocumentPicker();
   const clock = new FakeClock();
+  const youtube = new FakeYouTubeExtractor();
   const responses = new Map<string, unknown>();
   const http = {
     responses,
@@ -57,14 +63,26 @@ export async function createTestApp(options: { dbPath?: string } = {}): Promise<
     picker,
     network,
     downloader,
+    fileProcessor: options.fileProcessor,
     engine,
     http,
+    youtube,
     logger: silentLogger,
     clock,
     generateId: sequentialIds('id'),
   });
   await container.start();
-  return { container, storage, downloader, network, engine, picker, clock, http };
+  return {
+    container,
+    storage,
+    downloader,
+    network,
+    engine,
+    picker,
+    clock,
+    http,
+    youtube,
+  };
 }
 
 /** Waits until queued async work (serialized commands, events) settles. */

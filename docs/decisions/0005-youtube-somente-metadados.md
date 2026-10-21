@@ -1,6 +1,6 @@
 # ADR 0005 — YouTube somente como link + metadados
 
-- **Status**: aceito · **Data**: 2026-10-21
+- **Status**: substituído pelo [ADR 0006](0006-youtube-download-de-audio.md) · **Data**: 2026-10-21
 
 ## Decisão
 Reconhecer vídeos/playlists e salvar título/autor/miniatura via oEmbed oficial. Nenhuma extração

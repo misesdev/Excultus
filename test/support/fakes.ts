@@ -9,12 +9,18 @@ import type {
   StorageArea,
   StoredFile,
 } from '@core/application';
+import { NetworkError, SourceUnavailableError } from '@core/errors';
 import type { Unsubscribe } from '@core/types';
 import type {
   FileDownloader,
   FileDownloaderEvent,
   FileDownloadRequest,
 } from '@features/downloads';
+import type {
+  YouTubeExtractor,
+  YouTubePlaylist,
+  YouTubeVideo,
+} from '@infrastructure/external-sources/youtube/YouTubeExtractor';
 
 /** Test doubles for infrastructure ports. Never used by production code. */
 
@@ -137,6 +143,7 @@ export class FakeNetworkMonitor implements NetworkMonitor {
  */
 export class FakeFileDownloader implements FileDownloader {
   readonly started: FileDownloadRequest[] = [];
+  readonly completedTasks = new Set<string>();
   readonly stopped: string[] = [];
   private listeners = new Set<(event: FileDownloaderEvent) => void>();
 
@@ -180,6 +187,7 @@ export class FakeFileDownloader implements FileDownloader {
     }
     const size =
       this.storage.files.get(this.request(taskId).destinationPath)?.length ?? 0;
+    this.completedTasks.add(taskId);
     this.emit({ type: 'completed', taskId, bytesWritten: size, totalBytes: size });
   }
 
@@ -226,4 +234,67 @@ export class FakeDocumentPicker implements DocumentPicker {
 /** Resolves once every pending promise callback has run. */
 export function flushPromises(): Promise<void> {
   return new Promise(resolve => setImmediate(resolve));
+}
+
+/**
+ * Fixture-driven YouTube extractor. Unknown ids reject as unavailable;
+ * `offline` makes every call fail with a network error.
+ */
+export class FakeYouTubeExtractor implements YouTubeExtractor {
+  readonly videos = new Map<string, YouTubeVideo>();
+  readonly playlists = new Map<string, YouTubePlaylist>();
+  readonly resolved: string[] = [];
+  offline = false;
+  private streamCounter = 0;
+
+  addVideo(id: string, overrides: Partial<YouTubeVideo> = {}): YouTubeVideo {
+    const video: YouTubeVideo = {
+      id,
+      title: `Vídeo ${id}`,
+      uploader: 'Canal',
+      durationMs: 60_000,
+      streamUrl: '',
+      mimeType: 'audio/mp4',
+      contentLength: 5,
+      ...overrides,
+    };
+    this.videos.set(id, video);
+    return video;
+  }
+
+  async resolveVideo(videoId: string): Promise<YouTubeVideo> {
+    this.check();
+    this.resolved.push(videoId);
+    const video = this.videos.get(videoId);
+    if (!video) {
+      throw new SourceUnavailableError('Video unavailable', {
+        userMessage: 'Este vídeo do YouTube não pode ser baixado.',
+      });
+    }
+    // Real stream URLs are short-lived: every resolution yields a new one.
+    this.streamCounter++;
+    return {
+      ...video,
+      streamUrl: `https://rr1.googlevideo.com/videoplayback?id=${videoId}&n=${this.streamCounter}`,
+    };
+  }
+
+  async getPlaylist(playlistId: string, maxEntries: number): Promise<YouTubePlaylist> {
+    this.check();
+    const playlist = this.playlists.get(playlistId);
+    if (!playlist) {
+      throw new SourceUnavailableError('Playlist unavailable');
+    }
+    return {
+      ...playlist,
+      entries: playlist.entries.slice(0, maxEntries),
+      truncated: playlist.entries.length > maxEntries,
+    };
+  }
+
+  private check(): void {
+    if (this.offline) {
+      throw new NetworkError();
+    }
+  }
 }

@@ -17,10 +17,12 @@
 
 1. `enqueue`: um registro por áudio (`UNIQUE(audio_id)`) — duplicados são ignorados; concluídos
    com arquivo presente não são baixados de novo.
-2. `schedule`: respeita rede (somente Wi‑Fi opcional), concorrência e espaço livre.
-3. Arquivo vai para `library/tmp/<downloadId>.part`.
+2. `schedule`: respeita rede (somente Wi‑Fi opcional), concorrência e espaço livre. Antes de
+   cada transferência o `MediaUrlResolver` troca a URL guardada por uma de mídia (YouTube).
+3. Arquivo vai para `library/tmp/<downloadId>.part` (`*.googlevideo.com` em blocos Range de 4 MiB).
 4. Conclusão: valida tamanho esperado (fonte ou servidor) e MD5 (Archive.org fornece);
-   inválido → apaga e marca falha (`integrity`); válido → move para
+   inválido → apaga e marca falha (`integrity`); válido → `DownloadedFileProcessor` (remuxa MP4
+   fragmentado em MP4 comum; se falhar, mantém o original) → move para
    `library/audio/<audioId>.<ext>` e marca `completed` + `verifiedAt`.
 5. Falhas transitórias (rede, 5xx, 408/429, IO) → nova tentativa com backoff até o limite dos
    ajustes; demais → `failed` com código para mensagem amigável.

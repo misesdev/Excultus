@@ -5,7 +5,7 @@ conteúdos de áudio — cursos, audiolivros, podcasts e músicas — com funcio
 sem conta e sem backend.
 
 - Importa itens do **Internet Archive** (ex.: `https://archive.org/details/COFemAudio`), links
-  diretos de áudio, arquivos do dispositivo e links do **YouTube** (somente link + metadados).
+  diretos de áudio, arquivos do dispositivo e vídeos e playlists do **YouTube** (áudio baixado em M4A).
 - Downloads persistentes com fila, concorrência, pausa/retomada (HTTP Range), novas tentativas,
   validação de integridade (tamanho + MD5) e controle de espaço.
 - Player completo em segundo plano (notificação, tela bloqueada, fones), velocidade, saltos,
@@ -23,7 +23,9 @@ sem conta e sem backend.
 | Dispositivo | Android 7.0+ (minSdk 24) |
 
 > Se o JDK padrão do sistema for apenas um JRE, exporte `JAVA_HOME` antes do Gradle:
-> `export JAVA_HOME=/snap/android-studio/current/jbr` (ajuste o caminho).
+> `export JAVA_HOME=/snap/android-studio/current/jbr` (ajuste o caminho). Para não depender do
+> shell, fixe o JDK em `~/.gradle/gradle.properties`: `org.gradle.java.home=<jdk>`,
+> `org.gradle.java.installations.auto-detect=false` e `org.gradle.java.installations.paths=<jdk>`.
 
 ## Instalação e execução
 
@@ -47,18 +49,34 @@ npm run android            # build debug + instala no emulador/dispositivo
 
 Hooks Git (Husky): `pre-commit` roda lint-staged + typecheck; `pre-push` roda os testes.
 
-## APK de release
+## Release (APK e AAB)
 
 ```bash
-cd android && ./gradlew assembleRelease
-# saída: android/app/build/outputs/apk/release/app-release.apk
-adb install -r android/app/build/outputs/apk/release/app-release.apk
+cd android && ./gradlew assembleRelease bundleRelease
+# APK: android/app/build/outputs/apk/release/app-release.apk   (instalação direta)
+# AAB: android/app/build/outputs/bundle/release/app-release.aab (Play Store)
 ```
 
-O template assina o release com a chave de **debug** — suficiente para instalação pessoal.
-Para distribuir, gere um keystore próprio (`keytool -genkeypair ...`), configure
-`signingConfigs.release` em `android/app/build.gradle` e mantenha as senhas fora do Git
-(`~/.gradle/gradle.properties`).
+O release é assinado com a chave própria do app, mantida **fora do repositório**:
+`~/.android/excultus-release.jks` (PKCS12, RSA 4096, alias `excultus`), com as senhas em
+`~/.gradle/gradle.properties` (`EXCULTUS_RELEASE_STORE_FILE`, `EXCULTUS_RELEASE_STORE_PASSWORD`,
+`EXCULTUS_RELEASE_KEY_ALIAS`, `EXCULTUS_RELEASE_KEY_PASSWORD`). Sem essas propriedades o build
+cai para a chave de debug e avisa no log (não publicável). **Faça backup do keystore e da senha**:
+sem eles não é possível publicar atualizações. A cada versão, incremente `versionCode` e
+`versionName` em `android/app/build.gradle`.
+
+Um app instalado em modo debug usa outra assinatura: para instalar o release no mesmo aparelho
+é preciso desinstalar o debug antes (os dados locais do app são apagados).
+
+## Ícone do app
+
+A arte original fica em `AppIcon.png` (gerada por IA: play em fundo preto, com um quadrado
+arredondado desenhado e sem transparência). Todos os ícones derivam dela via
+`python3 scripts/app-icon/generate.py` (requer Pillow), que isola o símbolo com transparência
+real e gera: ícone adaptativo Android (frente/fundo/monocromático, símbolo na zona segura — o
+launcher aplica a máscara, sem cantos quadrados), ícones legados do Android 7, ícone da Play
+Store (`android/app/src/main/ic_launcher-playstore.png`), ícones do iOS e o ícone branco da
+notificação de mídia. Para trocar o ícone, substitua `AppIcon.png` e rode o script.
 
 ## Estrutura
 

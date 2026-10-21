@@ -40,13 +40,14 @@ describe('PlayerController', () => {
     expect(player().getState().current).toMatchObject({ audioId: ids[1], isLocal: true });
   });
 
-  it('refuses to stream while offline and reports a playback error', async () => {
+  it('refuses to stream while offline with a friendly message', async () => {
     app.network.set({ isConnected: false, isWifi: false });
-    await player().play(ids[0]!);
-    expect(player().getState()).toMatchObject({
-      status: 'error',
-      errorCode: 'audio-playback',
+    await expect(player().play(ids[0]!)).rejects.toMatchObject({
+      code: 'audio-playback',
+      userMessage: expect.stringContaining('conecte-se à internet'),
     });
+    expect(player().getState().current).toBeUndefined();
+    expect(app.engine.loaded).toBeNull();
   });
 
   it('persists progress periodically, on pause and resumes from it', async () => {

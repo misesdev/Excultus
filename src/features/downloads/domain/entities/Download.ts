@@ -16,7 +16,9 @@ export type DownloadErrorCode =
   | 'insufficient-storage'
   | 'integrity'
   | 'io'
-  | 'file-missing';
+  | 'file-missing'
+  /** The source no longer offers the media (private, removed, restricted). */
+  | 'source-unavailable';
 
 /**
  * Persistent download record. At most one record exists per audio, which is

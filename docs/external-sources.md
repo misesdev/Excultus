@@ -13,8 +13,8 @@ interface AudioSourceProvider {
 ```
 
 `SourceAudioItem.acquisition` define como obter a mídia: `download` (URL + MD5 opcional),
-`copy` (arquivo local já copiado pelo seletor) ou `link-only`. `availability`:
-`available`, `restricted` (nunca selecionável/baixável) ou `external` (abre na origem).
+`copy` (arquivo local já copiado pelo seletor) ou `none` (itens restritos). `availability`:
+`available` ou `restricted` (nunca selecionável/importado). Nenhuma fonte salva "só o link".
 O `SourceProviderRegistry` (Strategy) escolhe o provider; só aceita HTTPS.
 
 ## Providers
@@ -22,7 +22,7 @@ O `SourceProviderRegistry` (Strategy) escolhe o provider; só aceita HTTPS.
 | Provider | Reconhece | Observações |
 |---|---|---|
 | `ArchiveOrgProvider` | `archive.org/(details\|download\|metadata\|embed)/<id>` | `GET /metadata/<id>`; agrupa original + derivados e escolhe o melhor formato (MP3 > M4A > AAC > OGG/OPUS > FLAC > WAV); duração `length` (s ou hh:mm:ss); MD5; arquivos `private` e itens restritos/escuros tratados; descrição HTML → texto; capa `services/img/<id>`; cache de 5 min para não buscar duas vezes |
-| `YouTubeMetadataProvider` | vídeos (`watch`, `youtu.be`, `shorts`, `live`) e playlists | **somente link + metadados** via oEmbed oficial. Sem extração de áudio (termos da plataforma). Reproduzir = abrir no YouTube |
+| `YouTubeProvider` | vídeos (`watch`, `youtu.be`, `shorts`, `live`) e playlists | TurboModule `ExcultusYouTube` (NewPipeExtractor). Cada vídeo é resolvido na pré-visualização: vídeo sem áudio baixável → erro com mensagem e nada é salvo; em playlists (até 200 vídeos, 4 em paralelo) os indisponíveis aparecem como "Indisponível". Áudio M4A (AAC) progressivo; `mediaUrl` guarda a página do vídeo e a URL de mídia (expira em horas) é resolvida pelo `YouTubeMediaUrlResolver` antes de cada download. Reprodução só a partir do arquivo baixado (ADR 0006) |
 | `DirectAudioProvider` | HTTPS terminando em extensão de áudio suportada | HEAD opcional para tamanho/MIME; valida extensão × MIME |
 | `LocalFileProvider` | seletor do sistema (SAF) | cópia local temporária; extensão + MIME validados; rejeitados são apagados; dedup por nome+tamanho |
 

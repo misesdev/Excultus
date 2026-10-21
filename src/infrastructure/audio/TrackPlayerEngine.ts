@@ -29,6 +29,9 @@ const STATE_MAP: Partial<Record<State, EngineState>> = {
   [State.Buffering]: 'buffering',
 };
 
+/** RNTP types `icon` as a require() id; resolveAssetSource passes `{ uri }` objects through. */
+const NOTIFICATION_ICON = { uri: 'ic_notification' } as unknown as number;
+
 const CAPABILITIES = [
   Capability.Play,
   Capability.Pause,
@@ -72,6 +75,9 @@ export class TrackPlayerEngine implements AudioPlaybackEngine {
         appKilledPlaybackBehavior:
           AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
       },
+      // Native drawable (res/drawable-*/ic_notification.png): a resource name
+      // resolves in debug and release alike, unlike a bundled require().
+      icon: NOTIFICATION_ICON,
       capabilities: CAPABILITIES,
       notificationCapabilities: CAPABILITIES,
       compactCapabilities: [

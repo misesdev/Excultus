@@ -42,9 +42,22 @@ jest.mock('../../specs/NativeExcultusDownloader', () => {
     default: {
       start: jest.fn(async () => undefined),
       stop: jest.fn(async () => undefined),
+      remuxFragmentedMp4: jest.fn(async () => false),
       onProgress: jest.fn(() => subscription),
       onCompleted: jest.fn(() => subscription),
       onFailed: jest.fn(() => subscription),
     },
   };
 });
+
+jest.mock('../../specs/NativeExcultusYouTube', () => ({
+  __esModule: true,
+  default: {
+    resolveVideo: jest.fn(async () => {
+      throw Object.assign(new Error('offline in tests'), { code: 'E_NETWORK' });
+    }),
+    getPlaylist: jest.fn(async () => {
+      throw Object.assign(new Error('offline in tests'), { code: 'E_NETWORK' });
+    }),
+  },
+}));

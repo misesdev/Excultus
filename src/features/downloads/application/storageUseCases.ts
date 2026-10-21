@@ -5,6 +5,7 @@ import type {
   DownloadRepository,
 } from '../domain/repositories/DownloadRepository';
 import type { DownloadManager } from './DownloadManager';
+import type { DownloadedFileProcessor } from './ports';
 
 export interface StorageUsage {
   audioBytes: number;
@@ -27,13 +28,14 @@ export interface StorageUseCaseDeps {
   events: EventBus;
   clock: Clock;
   logger: Logger;
+  fileProcessor?: DownloadedFileProcessor;
 }
 
 const sumSizes = (files: ReadonlyArray<{ sizeBytes: number }>) =>
   files.reduce((total, file) => total + file.sizeBytes, 0);
 
 export function createStorageUseCases(deps: StorageUseCaseDeps) {
-  const { repository, manager, storage, events, clock, logger } = deps;
+  const { repository, manager, storage, events, clock, logger, fileProcessor } = deps;
 
   return {
     listDownloads(): Promise<DownloadListEntry[]> {
@@ -115,6 +117,33 @@ export function createStorageUseCases(deps: StorageUseCaseDeps) {
         events.emit('downloads', 'library', 'collections');
       }
       return { checked: completed.length, missing, orphansRemoved };
+    },
+
+    /**
+     * Applies the file processor to downloads completed before it existed
+     * (e.g. fragmented YouTube M4A). Already processed files are a cheap no-op.
+     */
+    async processDownloadedFiles(): Promise<number> {
+      if (!fileProcessor) {
+        return 0;
+      }
+      let processed = 0;
+      for (const download of await repository.findByStatus(['completed'])) {
+        if (!download.localPath) {
+          continue;
+        }
+        try {
+          if (await fileProcessor.process(download.localPath, download.fileExtension)) {
+            processed++;
+          }
+        } catch (error) {
+          logger.warn('storage.processing_failed', { audioId: download.audioId }, error);
+        }
+      }
+      if (processed > 0) {
+        logger.info('storage.files_processed', { processed });
+      }
+      return processed;
     },
 
     /** Deletes every downloaded file, keeping all metadata. */

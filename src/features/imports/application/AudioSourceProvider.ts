@@ -6,15 +6,13 @@ export type AcquisitionMethod =
   | { kind: 'download'; url: string; expectedMd5?: string }
   /** Device file already copied into app storage by the picker. */
   | { kind: 'copy'; localPath: string; sourceUri: string }
-  /** Only a link + metadata can be stored (e.g. YouTube). */
-  | { kind: 'link-only' };
+  /** Nothing can be obtained (restricted items, which are never imported). */
+  | { kind: 'none' };
 
 export type ItemAvailability =
   | 'available'
-  /** Listed by the source but private/restricted: never downloaded. */
-  | 'restricted'
-  /** Playable only at the origin (opened externally). */
-  | 'external';
+  /** Listed by the source but private/restricted: never imported. */
+  | 'restricted';
 
 export interface SourceMetadata {
   sourceType: SourceType;

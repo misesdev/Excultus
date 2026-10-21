@@ -27,6 +27,8 @@ export class AppError extends Error {
   readonly code: ErrorCode;
   override readonly cause?: unknown;
   readonly details?: Readonly<Record<string, string | number | boolean | undefined>>;
+  /** pt-BR text shown instead of the generic message for `code`. */
+  readonly userMessage?: string;
 
   constructor(
     code: ErrorCode,
@@ -34,6 +36,7 @@ export class AppError extends Error {
     options: {
       cause?: unknown;
       details?: Record<string, string | number | boolean | undefined>;
+      userMessage?: string;
     } = {},
   ) {
     super(message);
@@ -41,6 +44,7 @@ export class AppError extends Error {
     this.code = code;
     this.cause = options.cause;
     this.details = options.details;
+    this.userMessage = options.userMessage;
   }
 }
 

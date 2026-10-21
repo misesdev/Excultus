@@ -24,7 +24,8 @@ const MESSAGES: Record<ErrorCode, string> = {
 };
 
 export function getUserMessage(error: unknown): string {
-  return MESSAGES[toAppError(error).code];
+  const appError = toAppError(error);
+  return appError.userMessage ?? MESSAGES[appError.code];
 }
 
 export function getUserMessageForCode(code: ErrorCode): string {

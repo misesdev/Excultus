@@ -237,7 +237,7 @@ export class ArchiveOrgProvider implements AudioSourceProvider {
         mediaUrl: restricted ? undefined : mediaUrl,
         availability: restricted ? 'restricted' : 'available',
         acquisition: restricted
-          ? { kind: 'link-only' }
+          ? { kind: 'none' }
           : { kind: 'download', url: mediaUrl, expectedMd5: best.file.md5 },
       });
     }

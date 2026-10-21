@@ -26,6 +26,8 @@ export type DownloadFailedEvent = {
 export interface Spec extends TurboModule {
   start(taskId: string, url: string, destinationPath: string): Promise<void>;
   stop(taskId: string): Promise<void>;
+  /** Rewrites a fragmented MP4 as a regular one in place; false when it was not fragmented. */
+  remuxFragmentedMp4(path: string): Promise<boolean>;
   readonly onProgress: CodegenTypes.EventEmitter<DownloadProgressEvent>;
   readonly onCompleted: CodegenTypes.EventEmitter<DownloadCompletedEvent>;
   readonly onFailed: CodegenTypes.EventEmitter<DownloadFailedEvent>;

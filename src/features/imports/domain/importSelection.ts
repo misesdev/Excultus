@@ -2,7 +2,7 @@
 export interface SelectableItem {
   sourceId: string;
   sizeBytes?: number;
-  availability: 'available' | 'restricted' | 'external';
+  availability: 'available' | 'restricted';
 }
 
 export function isSelectable(item: SelectableItem): boolean {

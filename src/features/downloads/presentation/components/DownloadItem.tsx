@@ -21,6 +21,7 @@ const ERROR_CODES: Record<DownloadErrorCode, ErrorCode> = {
   integrity: 'download-failed',
   io: 'download-failed',
   'file-missing': 'file-not-found',
+  'source-unavailable': 'source-unavailable',
 };
 
 export interface DownloadItemProps {

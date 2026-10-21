@@ -52,10 +52,7 @@ function ImportItemRowComponent({ item, selected, onToggle }: ImportItemRowProps
         )}
       </View>
       {item.availability === 'restricted' && (
-        <AppBadge label="Restrito" tone="warning" icon="lock-closed" />
-      )}
-      {item.availability === 'external' && (
-        <AppBadge label="Só link" tone="neutral" icon="link" />
+        <AppBadge label="Indisponível" tone="warning" icon="lock-closed" />
       )}
     </Pressable>
   );

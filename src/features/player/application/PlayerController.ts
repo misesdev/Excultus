@@ -184,16 +184,26 @@ export class PlayerController implements AudioPlayerService {
     options: PlayOptions = {},
   ): Promise<void> {
     return this.serial(async () => {
-      const queue = createQueue(audioIds, startIndex);
-      if (queue.items.length === 0) {
+      const created = createQueue(audioIds, startIndex);
+      if (created.items.length === 0) {
         return;
       }
+      const shuffled = this.state.queue.shuffled
+        ? setShuffle(created, true, this.random)
+        : created;
+      const start = await this.findPlayablePosition(shuffled);
+      if (start === null) {
+        throw new AudioPlaybackError('No audio in the queue can play now', {
+          details: { count: created.items.length },
+          userMessage:
+            'Nenhum áudio desta lista pode tocar agora. Baixe os áudios (os do YouTube só tocam baixados) ou conecte-se à internet.',
+        });
+      }
       await this.saveProgress();
-      const keepShuffle = this.state.queue.shuffled;
       // A new queue starts at the configured default speed; changes made in
       // the player apply to the current queue (and survive restarts).
       this.setState({
-        queue: keepShuffle ? setShuffle(queue, true, this.random) : queue,
+        queue: moveTo(shuffled, start),
         contextLabel: options.contextLabel,
         rate: this.deps.getConfig().defaultSpeed,
       });
@@ -426,8 +436,13 @@ export class PlayerController implements AudioPlayerService {
   }
 
   private async moveAndLoad(position: number): Promise<void> {
+    const target = await this.findPlayablePosition(moveTo(this.state.queue, position));
+    if (target === null) {
+      this.deps.logger.info('player.nothing_playable_ahead', { position });
+      return;
+    }
     await this.saveProgress(true);
-    this.setState({ queue: moveTo(this.state.queue, position) });
+    this.setState({ queue: moveTo(this.state.queue, target) });
     await this.loadCurrent(true);
     await this.persistSession();
   }
@@ -524,6 +539,35 @@ export class PlayerController implements AudioPlayerService {
       );
       this.setState({ status: 'error', errorCode: appError.code });
     }
+  }
+
+  /**
+   * First queue position, from the queue's current one onwards (in play
+   * order), whose audio can play right now: downloaded, or streamable while
+   * online. YouTube audio only plays downloaded. Null when none can.
+   */
+  private async findPlayablePosition(queue: PlaybackQueue): Promise<number | null> {
+    const { isConnected } = await this.deps.network.getStatus();
+    let candidate = queue;
+    for (let checked = 0; checked < queue.items.length; checked++) {
+      const audioId = currentAudioId(candidate);
+      const audio = audioId ? await this.deps.audios.findById(audioId) : null;
+      if (audio) {
+        const local = await this.deps.localFiles.findPlayableLocalPath(audio.id);
+        if (local || (isConnected && isRemotelyPlayable(audio))) {
+          if (checked > 0) {
+            this.deps.logger.info('player.skipped_unplayable', { skipped: checked });
+          }
+          return candidate.position;
+        }
+      }
+      const next = nextPosition(candidate, 'off');
+      if (next === null) {
+        return null;
+      }
+      candidate = moveTo(candidate, next);
+    }
+    return null;
   }
 
   private async resolveUrl(audio: Audio): Promise<string> {
@@ -651,11 +695,15 @@ export class PlayerController implements AudioPlayerService {
         return;
       }
       const next = nextPosition(this.state.queue, this.state.repeatMode);
-      if (next === null || !this.deps.getConfig().autoPlayNext) {
+      const target =
+        next === null || !this.deps.getConfig().autoPlayNext
+          ? null
+          : await this.findPlayablePosition(moveTo(this.state.queue, next));
+      if (target === null) {
         this.setState({ status: 'paused' });
         return;
       }
-      this.setState({ queue: moveTo(this.state.queue, next) });
+      this.setState({ queue: moveTo(this.state.queue, target) });
       await this.loadCurrent(true);
       await this.persistSession();
     });

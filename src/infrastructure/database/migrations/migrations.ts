@@ -159,4 +159,16 @@ export const MIGRATIONS: readonly Migration[] = [
       END`,
     ],
   },
+  {
+    version: 2,
+    name: 'downloadable_youtube_videos',
+    statements: [
+      // Videos imported when YouTube was link-only become downloadable: the
+      // page URL is resolved to a media URL right before each download.
+      `UPDATE audios
+        SET media_url = source_url, mime_type = 'audio/mp4'
+        WHERE source_type = 'youtube' AND source_id LIKE 'video:%'
+          AND media_url IS NULL AND source_url IS NOT NULL`,
+    ],
+  },
 ];

@@ -18,7 +18,7 @@ Fases 1–8 implementadas. Pendências reais em [`known-issues.md`](known-issues
 - **Player**: `PlayerController` + Track Player (patch para RN 0.88), fila/aleatório/repetir,
   saltos configuráveis, velocidade, timer, marcadores, notificação/tela bloqueada, progresso
   persistente, sessão restaurada, mini player global, player imersivo.
-- **Importação**: Internet Archive, link direto, arquivos locais, YouTube (metadados).
+- **Importação**: Internet Archive, link direto, arquivos locais, YouTube (download do áudio M4A via NewPipeExtractor).
 - **Downloads**: TurboModule Kotlin (OkHttp, Range), `DownloadManager` (fila persistente,
   concorrência, Wi‑Fi, retries, MD5, espaço, recuperação), tela de downloads, manutenção.
 - **Biblioteca**: favoritos, playlists, histórico, continuar ouvindo, busca paginada com filtros
@@ -41,7 +41,8 @@ Fases 1–8 implementadas. Pendências reais em [`known-issues.md`](known-issues
 ## Decisões importantes
 
 ADRs em [`decisions/`](decisions): arquitetura por feature (0001), SQLite/op-sqlite/FTS5 (0002),
-Track Player com patches (0003), downloader nativo (0004), YouTube só metadados (0005).
+Track Player com patches (0003), downloader nativo (0004), YouTube só metadados (0005, substituído),
+YouTube com download de áudio (0006).
 
 ## Próxima tarefa recomendada
 

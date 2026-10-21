@@ -7,6 +7,7 @@ import type {
   NetworkMonitor,
   NetworkStatus,
 } from '@core/application';
+import { toAppError } from '@core/errors';
 import type { Unsubscribe } from '@core/types';
 import {
   canPause,
@@ -30,10 +31,13 @@ import {
 } from '../domain/policies/downloadPolicies';
 import type { DownloadRepository } from '../domain/repositories/DownloadRepository';
 import type {
+  DownloadedFileProcessor,
   DownloadRuntimeConfig,
   FileDownloader,
   FileDownloaderEvent,
   FileDownloadFailureReason,
+  MediaUrlResolver,
+  ResolvedMediaUrl,
 } from './ports';
 
 export interface DownloadRequest {
@@ -77,6 +81,9 @@ export interface DownloadManagerDeps {
   generateId: IdGenerator;
   logger: Logger;
   getConfig: () => DownloadRuntimeConfig;
+  /** Defaults to using the stored URL as is. */
+  urlResolver?: MediaUrlResolver;
+  fileProcessor?: DownloadedFileProcessor;
 }
 
 const PROGRESS_PERSIST_INTERVAL_MS = 5000;
@@ -446,24 +453,51 @@ export class DownloadManager {
       );
       return;
     }
-    const partial = (await this.deps.storage.fileSize(download.tempPath)) ?? 0;
+    let partial = (await this.deps.storage.fileSize(download.tempPath)) ?? 0;
     const running = transition(download, 'downloading', now, {
       bytesDownloaded: partial,
       totalBytes: download.totalBytes,
       attempts: download.attempts,
     });
     await this.commit(running);
-    this.running.add(running.id);
-    this.retryAfter.delete(running.id);
+
+    let source: ResolvedMediaUrl;
+    try {
+      source = this.deps.urlResolver
+        ? await this.deps.urlResolver.resolve(running.url)
+        : { url: running.url };
+    } catch (error) {
+      const appError = toAppError(error);
+      await this.handleFailure(
+        running,
+        appError.code === 'network' ? 'network' : 'source-unavailable',
+        undefined,
+        appError.message,
+      );
+      return;
+    }
+    let current = running;
+    if (source.totalBytes !== undefined && source.totalBytes !== running.totalBytes) {
+      if (partial > 0) {
+        // A different file than the partial one: appending would corrupt it.
+        await this.deps.storage.remove(running.tempPath);
+        partial = 0;
+      }
+      current = { ...running, bytesDownloaded: partial, totalBytes: source.totalBytes };
+      await this.commit(current);
+    }
+
+    this.running.add(current.id);
+    this.retryAfter.delete(current.id);
     try {
       await this.deps.downloader.start({
-        taskId: running.id,
-        url: running.url,
-        destinationPath: running.tempPath,
+        taskId: current.id,
+        url: source.url,
+        destinationPath: current.tempPath,
       });
     } catch (error) {
-      this.running.delete(running.id);
-      await this.handleFailure(running, 'io', undefined, String(error));
+      this.running.delete(current.id);
+      await this.handleFailure(current, 'io', undefined, String(error));
     }
   }
 
@@ -551,14 +585,15 @@ export class DownloadManager {
       return;
     }
 
+    const finalBytes = await this.processFile(download, actualBytes);
     const finalPath = this.deps.storage.audioFilePath(
       download.audioId,
       download.fileExtension,
     );
     await this.deps.storage.move(download.tempPath, finalPath);
     const completed = transition(download, 'completed', now, {
-      bytesDownloaded: actualBytes,
-      totalBytes: actualBytes,
+      bytesDownloaded: finalBytes,
+      totalBytes: finalBytes,
       localPath: finalPath,
       attempts: download.attempts,
       completedAt: now,
@@ -568,9 +603,35 @@ export class DownloadManager {
     this.forget(download);
     this.deps.logger.info('downloads.completed', {
       audioId: download.audioId,
-      bytes: actualBytes,
+      bytes: finalBytes,
     });
     this.deps.events.emit('downloads', 'library', 'collections');
+  }
+
+  /**
+   * Runs the optional processor on a validated file and returns its final
+   * size. A processing failure keeps the original, still playable, file.
+   */
+  private async processFile(download: Download, validatedBytes: number): Promise<number> {
+    if (!this.deps.fileProcessor) {
+      return validatedBytes;
+    }
+    try {
+      const changed = await this.deps.fileProcessor.process(
+        download.tempPath,
+        download.fileExtension,
+      );
+      return changed
+        ? (await this.deps.storage.fileSize(download.tempPath)) ?? validatedBytes
+        : validatedBytes;
+    } catch (error) {
+      this.deps.logger.warn(
+        'downloads.processing_failed',
+        { audioId: download.audioId },
+        error,
+      );
+      return validatedBytes;
+    }
   }
 
   private async handleFailure(

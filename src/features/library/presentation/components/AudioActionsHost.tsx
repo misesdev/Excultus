@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Linking } from 'react-native';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
 import { AppDialog, type AppMenuAction } from '@design-system';
-import { isRemotelyPlayable, type AudioLibraryItem } from '@features/audios';
+import { isDownloadable, type AudioLibraryItem } from '@features/audios';
 import {
   AudioActionsMenu,
   useAudioActionsStore,
@@ -54,19 +54,21 @@ export function AudioActionsHost() {
   ): AppMenuAction[] {
     const { audio } = item;
     const list: AppMenuAction[] = [];
-    const downloadable = isRemotelyPlayable(audio);
+    const downloadable = isDownloadable(audio);
+    // YouTube audio only plays from its downloaded file.
+    const queueable = audio.sourceType !== 'youtube' || item.offline === 'available';
     const status = live?.status;
 
     if (!context.fromPlayer) {
       list.push({
         key: 'play',
-        label: audio.sourceType === 'youtube' ? 'Abrir no YouTube' : 'Reproduzir',
-        icon: audio.sourceType === 'youtube' ? 'logo-youtube' : 'play',
+        label: 'Reproduzir',
+        icon: 'play',
         onPress: () =>
           playAudio(item, { queueIds: context.queueIds, label: context.queueLabel }),
       });
     }
-    if (audio.sourceType !== 'youtube') {
+    if (queueable) {
       list.push(
         {
           key: 'play-next',
@@ -169,11 +171,12 @@ export function AudioActionsHost() {
             onPress: () => run.run(() => progress.markCompleted(audio.id)),
           },
     );
-    if (audio.sourceUrl && audio.sourceType !== 'youtube') {
+    if (audio.sourceUrl) {
       const url = audio.sourceUrl;
       list.push({
         key: 'origin',
-        label: 'Abrir página de origem',
+        label:
+          audio.sourceType === 'youtube' ? 'Abrir no YouTube' : 'Abrir página de origem',
         icon: 'open-outline',
         onPress: () => Linking.openURL(url),
       });

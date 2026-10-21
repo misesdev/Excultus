@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import { buildAudio } from '@test/support/builders';
+import { importYouTubeVideos } from '@test/support/seed';
 import { createTestApp, settle, type TestApp } from '@test/support/testContainer';
 
 describe('DownloadManager', () => {
@@ -79,6 +80,68 @@ describe('DownloadManager', () => {
     expect(item.localPath).toBe(`/app/audio/${audioId}.mp3`);
     expect(app.storage.files.has(task.destinationPath)).toBe(false);
     expect(app.storage.files.get(`/app/audio/${audioId}.mp3`)).toBe('hello');
+  });
+
+  describe('file processing', () => {
+    let processed: string[];
+    let failProcessing: boolean;
+
+    beforeEach(async () => {
+      app.container.downloads.stop();
+      processed = [];
+      failProcessing = false;
+      app = await createTestApp({
+        fileProcessor: {
+          // Stands in for MP4 remuxing: rewrites the validated file in place.
+          process: async path => {
+            processed.push(path);
+            if (failProcessing) {
+              throw new Error('remux failed');
+            }
+            app.storage.files.set(path, 'remuxed');
+            return true;
+          },
+        },
+      });
+    });
+
+    it('processes the validated file before making it available', async () => {
+      const audioId = await insertAudio('a1');
+      await app.container.downloads.enqueue([request(audioId, 5)]);
+      const task = app.downloader.started[0]!;
+      app.downloader.complete(task.taskId, 'hello');
+      await settle();
+
+      expect(processed).toEqual([task.destinationPath]);
+      const item = await app.container.audios.getItem(audioId);
+      expect(item.offline).toBe('available');
+      expect(app.storage.files.get(`/app/audio/${audioId}.mp3`)).toBe('remuxed');
+      const [entry] = await app.container.storage.listDownloads();
+      expect(entry!.download.totalBytes).toBe('remuxed'.length);
+    });
+
+    it('keeps the original file when processing fails', async () => {
+      failProcessing = true;
+      const audioId = await insertAudio('a1');
+      await app.container.downloads.enqueue([request(audioId, 5)]);
+      app.downloader.complete(app.downloader.started[0]!.taskId, 'hello');
+      await settle();
+
+      const item = await app.container.audios.getItem(audioId);
+      expect(item.offline).toBe('available');
+      expect(app.storage.files.get(`/app/audio/${audioId}.mp3`)).toBe('hello');
+    });
+
+    it('processes files downloaded before processing existed', async () => {
+      const audioId = await insertAudio('a1');
+      await app.container.downloads.enqueue([request(audioId, 5)]);
+      app.downloader.complete(app.downloader.started[0]!.taskId, 'hello');
+      await settle();
+      processed.length = 0;
+
+      await expect(app.container.storage.processDownloadedFiles()).resolves.toBe(1);
+      expect(processed).toEqual([`/app/audio/${audioId}.mp3`]);
+    });
   });
 
   it('rejects corrupted files (size or checksum mismatch)', async () => {
@@ -226,5 +289,60 @@ describe('DownloadManager', () => {
       orphansRemoved: 1,
     });
     expect((await app.container.audios.getItem(audioId)).offline).toBe('failed');
+  });
+
+  describe('YouTube media URL resolution', () => {
+    const videoId = 'video000001';
+
+    async function enqueueVideo() {
+      const [audioId] = await importYouTubeVideos(app, [videoId]);
+      await app.container.downloadCommands.downloadAudios([audioId!]);
+      await settle();
+      return audioId!;
+    }
+
+    it('fails without retrying when the video is no longer available', async () => {
+      const [audioId] = await importYouTubeVideos(app, [videoId]);
+      app.youtube.videos.delete(videoId);
+      await app.container.downloadCommands.downloadAudios([audioId!]);
+      await settle();
+
+      expect(app.downloader.started).toHaveLength(0);
+      const [entry] = await app.container.storage.listDownloads();
+      expect(entry!.download).toMatchObject({
+        status: 'failed',
+        errorCode: 'source-unavailable',
+      });
+    });
+
+    it('retries later when resolving fails for lack of network', async () => {
+      const [audioId] = await importYouTubeVideos(app, [videoId]);
+      app.youtube.offline = true;
+      await app.container.downloadCommands.downloadAudios([audioId!]);
+      await settle();
+      expect(app.downloader.started).toHaveLength(0);
+
+      app.youtube.offline = false;
+      app.clock.advance(60_000);
+      jest.advanceTimersByTime(60_000);
+      await settle();
+      expect(app.downloader.started).toHaveLength(1);
+    });
+
+    it('discards a partial file when the source now serves a different file', async () => {
+      const audioId = await enqueueVideo();
+      const first = app.downloader.started[0]!;
+      app.downloader.writeBytes(first.taskId, '12');
+      await app.container.downloads.pause(audioId);
+      app.youtube.addVideo(videoId, { contentLength: 7 });
+
+      await app.container.downloads.resume(audioId);
+      await settle();
+
+      expect(app.storage.files.has(first.destinationPath)).toBe(false);
+      app.downloader.complete(first.taskId, '1234567');
+      await settle();
+      expect((await app.container.audios.getItem(audioId)).offline).toBe('available');
+    });
   });
 });

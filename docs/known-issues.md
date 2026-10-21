@@ -10,5 +10,6 @@
 | 6 | Restaurar backup não traz arquivos de áudio | Áudios restaurados precisam ser baixados de novo | Opção de exportar arquivos (ZIP) quando houver espaço |
 | 7 | Avisos `act(...)` em testes de componentes | Ruído no console por animações em loop (skeleton/onda); testes passam | Mock de `Animated.loop` no setup |
 | 8 | Mini player não tem gesto de deslizar para fechar | Encerrar a sessão está no menu "⋯" do player completo | Gesto de swipe no mini player chamando `player.close()` |
-| 9 | Release assinado com chave de debug (padrão do template) | Adequado para instalação pessoal; não para distribuição | Gerar keystore próprio (ver README) |
 | 10 | JDK do sistema era apenas JRE | Build requer `JAVA_HOME` apontando para um JDK completo | Documentado no README |
+| 11 | Extração do YouTube depende da NewPipeExtractor | Mudanças no YouTube podem quebrar a importação/download até atualizar a biblioteca | Atualizar `NewPipeExtractor` em `android/app/build.gradle` |
+| 12 | Itens antigos de playlist do YouTube salvos só como link | Não podem ser baixados; ao tocar, o app pede para importar a playlist de novo | Excluir esses itens e reimportar a playlist |

@@ -73,3 +73,11 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Release signing and artifacts (the release key lives outside the repo)
+*.jks
+*.p12
+*.pem
+keystore.properties
+*.apk
+*.aab

@@ -9,6 +9,7 @@ import {
   FakeDocumentPicker,
   FakeFileDownloader,
   FakeNetworkMonitor,
+  FakeYouTubeExtractor,
   InMemoryFileStorage,
   silentLogger,
 } from '@test/support/fakes';
@@ -25,6 +26,7 @@ function testAdapters(): PlatformAdapters {
     network: new FakeNetworkMonitor(),
     downloader: new FakeFileDownloader(storage),
     engine: new FakePlaybackEngine(),
+    youtube: new FakeYouTubeExtractor(),
     http: {
       getJson: async () => {
         throw new Error('offline in tests');

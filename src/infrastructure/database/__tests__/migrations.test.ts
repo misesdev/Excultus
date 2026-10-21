@@ -48,7 +48,7 @@ describe('database migrations', () => {
 
   it('applies only pending migrations and rolls back a failing one', async () => {
     const db = new SerializedDatabase(new NodeSqliteDriver());
-    await runMigrations(db, silentLogger);
+    const latest = await runMigrations(db, silentLogger);
     const broken = [
       ...MIGRATIONS,
       {
@@ -60,11 +60,41 @@ describe('database migrations', () => {
     await expect(runMigrations(db, silentLogger, broken)).rejects.toMatchObject({
       code: 'database',
     });
-    expect(await getSchemaVersion(db)).toBe(1);
+    expect(await getSchemaVersion(db)).toBe(latest);
     const { rows } = await db.execute(
       "SELECT name FROM sqlite_master WHERE name = 'ok_table'",
     );
     expect(rows).toHaveLength(0);
+  });
+
+  it('makes YouTube videos saved as link-only downloadable', async () => {
+    const db = new SerializedDatabase(new NodeSqliteDriver());
+    await runMigrations(db, silentLogger, MIGRATIONS.slice(0, 1));
+    const insert = (id: string, sourceId: string, sourceUrl: string) =>
+      db.execute(
+        `INSERT INTO audios (id, title, source_type, source_id, source_url, created_at, updated_at)
+         VALUES (?, 'x', 'youtube', ?, ?, 'n', 'n')`,
+        [id, sourceId, sourceUrl],
+      );
+    await insert('v', 'video:aaaaaaaaaaa', 'https://www.youtube.com/watch?v=aaaaaaaaaaa');
+    await insert(
+      'p',
+      'playlist:PLxxxxxxxxxx',
+      'https://www.youtube.com/playlist?list=PLx',
+    );
+    await runMigrations(db, silentLogger);
+
+    const { rows } = await db.execute(
+      'SELECT id, media_url, mime_type FROM audios ORDER BY id',
+    );
+    expect(rows).toEqual([
+      { id: 'p', media_url: null, mime_type: null },
+      {
+        id: 'v',
+        media_url: 'https://www.youtube.com/watch?v=aaaaaaaaaaa',
+        mime_type: 'audio/mp4',
+      },
+    ]);
   });
 
   it('refuses to open a schema newer than the app', async () => {

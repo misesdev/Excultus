@@ -43,6 +43,30 @@ export interface FileDownloader {
   subscribe(listener: (event: FileDownloaderEvent) => void): Unsubscribe;
 }
 
+export interface ResolvedMediaUrl {
+  url: string;
+  /** Size announced by the source, when known. */
+  totalBytes?: number;
+}
+
+/**
+ * Turns a stored download URL into a fetchable one right before a transfer
+ * starts. Sources whose media URLs expire (YouTube) store a stable page URL
+ * and are resolved here; any other URL is returned unchanged.
+ */
+export interface MediaUrlResolver {
+  resolve(url: string): Promise<ResolvedMediaUrl>;
+}
+
+/**
+ * Last step on a validated file before it becomes available, e.g. rewriting
+ * streaming-only containers into a format local players seek well in.
+ */
+export interface DownloadedFileProcessor {
+  /** Returns true when the file was rewritten in place. */
+  process(path: string, fileExtension: string): Promise<boolean>;
+}
+
 export interface DownloadRuntimeConfig {
   maxConcurrent: number;
   wifiOnly: boolean;

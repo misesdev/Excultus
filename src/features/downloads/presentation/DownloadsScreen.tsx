@@ -108,7 +108,7 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
 
 export function DownloadsScreen() {
   const navigation = useAppNavigation();
-  const { storage, downloads } = useDependencies();
+  const { storage, downloads, audios } = useDependencies();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const { data, loading, error, refetch, refreshing } = useQuery(
     async () => ({
@@ -123,6 +123,10 @@ export function DownloadsScreen() {
     {
       successMessage: 'Arquivo removido. O áudio continua na biblioteca.',
     },
+  );
+  const removeFromLibrary = useAsyncAction(
+    (audioId: string) => audios.deleteFromLibrary(audioId),
+    { successMessage: 'Áudio removido da biblioteca, das playlists e das coleções.' },
   );
 
   const sections = useMemo(() => {
@@ -191,13 +195,24 @@ export function DownloadsScreen() {
       )}
       <AppDialog
         visible={confirmDelete !== null}
-        title="Excluir arquivo baixado?"
-        message="O arquivo será apagado do dispositivo. O áudio, seu progresso e marcadores continuam na biblioteca e podem ser baixados de novo."
+        title="Excluir download?"
+        message="Apagar só o arquivo mantém o áudio na biblioteca, nas playlists e nas coleções, com progresso e marcadores, para baixar de novo depois. Remover da biblioteca apaga tudo isso."
         onDismiss={() => setConfirmDelete(null)}
         actions={[
           {
-            label: 'Excluir arquivo',
+            label: 'Remover da biblioteca',
             variant: 'destructive',
+            testID: 'confirm-remove-from-library',
+            onPress: () => {
+              if (confirmDelete) {
+                removeFromLibrary.run(confirmDelete);
+              }
+              setConfirmDelete(null);
+            },
+          },
+          {
+            label: 'Apagar só o arquivo',
+            variant: 'secondary',
             testID: 'confirm-delete-download',
             onPress: () => {
               if (confirmDelete) {

@@ -1,5 +1,5 @@
 import {
-  isRemotelyPlayable,
+  isDownloadable,
   resolveAudioExtension,
   type AudioRepository,
 } from '@features/audios';
@@ -7,7 +7,7 @@ import type { DownloadManager, DownloadRequest } from './DownloadManager';
 
 export interface DownloadAudiosResult {
   enqueued: number;
-  /** Audios without a downloadable source (e.g. YouTube links, restricted files). */
+  /** Audios without a downloadable source (e.g. restricted files). */
   unavailable: number;
 }
 
@@ -28,7 +28,7 @@ export function createDownloadCommands({
         const extension =
           audio?.mediaUrl &&
           resolveAudioExtension({ fileName: audio.mediaUrl, mimeType: audio.mimeType });
-        if (!audio || !audio.mediaUrl || !isRemotelyPlayable(audio) || !extension) {
+        if (!audio || !audio.mediaUrl || !isDownloadable(audio) || !extension) {
           unavailable++;
           continue;
         }

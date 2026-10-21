@@ -95,7 +95,7 @@ describe('ArchiveOrgProvider', () => {
     const restricted = items.find(item => item.sourceId.endsWith('private-lecture.mp3'));
     expect(restricted).toMatchObject({
       availability: 'restricted',
-      acquisition: { kind: 'link-only' },
+      acquisition: { kind: 'none' },
     });
     expect(restricted?.mediaUrl).toBeUndefined();
     const bonus = items.find(item => item.sourceId.endsWith('Bonus Track.ogg'));

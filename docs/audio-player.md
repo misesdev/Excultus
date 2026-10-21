@@ -21,7 +21,8 @@ Comandos são serializados (mutex) para que toques rápidos nunca intercalem cha
 | Segundo plano / notificação / tela bloqueada | Track Player (foreground service `mediaPlayback`) |
 | Chamadas e outros apps (audio focus) | `autoHandleInterruptions: true` |
 | Desconectar fone | ExoPlayer "becoming noisy" (pausa) |
-| Fonte | arquivo local verificado → `file://`; senão streaming do `mediaUrl` se online; senão erro amigável |
+| Fonte | arquivo local verificado → `file://`; senão streaming do `mediaUrl` se online (YouTube só toca baixado) |
+| Itens sem fonte agora | ao iniciar uma fila, avançar ou terminar a faixa, o player pula (na ordem de reprodução) os áudios que não podem tocar no momento; se nenhum pode, `playQueue` rejeita com mensagem amigável e a reprodução atual continua |
 | Velocidade | 0,5x–3x; nova fila começa na velocidade padrão dos ajustes |
 | Saltos | intervalos configuráveis (10/15/30 s), também na notificação |
 | Anterior | reinicia a faixa se > 3 s; senão volta |

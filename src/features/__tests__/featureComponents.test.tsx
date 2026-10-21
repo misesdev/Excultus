@@ -61,14 +61,14 @@ describe('ImportItemRow', () => {
         <ImportItemRow
           item={archiveItem('b', {
             availability: 'restricted',
-            acquisition: { kind: 'link-only' },
+            acquisition: { kind: 'none' },
           })}
           selected={false}
           onToggle={onToggle}
         />
       </>,
     );
-    expect(screen.getByText('Restrito')).toBeOnTheScreen();
+    expect(screen.getByText('Indisponível')).toBeOnTheScreen();
     const rows = screen.getAllByRole('checkbox');
     const available = rows.find(row =>
       row.props.accessibilityLabel?.startsWith('Aula a,'),

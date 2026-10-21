@@ -85,6 +85,10 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    compileOptions {
+        // NewPipeExtractor uses java.nio APIs missing below API 33.
+        coreLibraryDesugaringEnabled true
+    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -92,24 +96,44 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        // Release key lives outside the repository: set EXCULTUS_RELEASE_* in
+        // ~/.gradle/gradle.properties (see README, "Release").
+        if (project.hasProperty('EXCULTUS_RELEASE_STORE_FILE')) {
+            release {
+                storeFile file(EXCULTUS_RELEASE_STORE_FILE)
+                storePassword EXCULTUS_RELEASE_STORE_PASSWORD
+                keyAlias EXCULTUS_RELEASE_KEY_ALIAS
+                keyPassword EXCULTUS_RELEASE_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            if (signingConfigs.findByName('release') != null) {
+                signingConfig signingConfigs.release
+            } else {
+                logger.warn('EXCULTUS_RELEASE_* not set: release is signed with the DEBUG key (not publishable).')
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }
 
+repositories {
+    maven { url "https://jitpack.io" }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    // YouTube video/playlist resolution (GPLv3).
+    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

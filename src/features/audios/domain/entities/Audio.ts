@@ -23,7 +23,11 @@ export interface Audio {
   sourceId?: string;
   /** Human-facing page of the content at its origin. */
   sourceUrl?: string;
-  /** Direct media URL usable for streaming or downloading, when the source allows it. */
+  /**
+   * Media URL usable for downloading (and streaming, see `isRemotelyPlayable`).
+   * For YouTube it is the video page, resolved to a short-lived media URL
+   * right before each download.
+   */
   mediaUrl?: string;
   mimeType?: string;
   fileSize?: number;
@@ -106,7 +110,12 @@ export function mergeAudioMetadata(
   };
 }
 
-/** Streaming/downloading is only possible when the source exposes a media URL. */
+/** Downloading is only possible when the source exposes a media URL. */
+export function isDownloadable(audio: Audio): boolean {
+  return audio.mediaUrl !== undefined;
+}
+
+/** YouTube media URLs expire within hours, so YouTube audio plays only offline. */
 export function isRemotelyPlayable(audio: Audio): boolean {
-  return audio.sourceType !== 'youtube' && audio.mediaUrl !== undefined;
+  return audio.sourceType !== 'youtube' && isDownloadable(audio);
 }

@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import okhttp3.Call
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -21,6 +22,8 @@ import okhttp3.Request
  *
  * - Resumes partial files with `Range: bytes=<size>-`; if the server ignores
  *   the range (HTTP 200) the file is rewritten from the start.
+ * - Hosts that throttle open-ended requests (YouTube) are fetched in
+ *   bounded `Range` chunks appended to the same file.
  * - Emits throttled progress events and exactly one terminal event
  *   (completed or failed) per started task.
  * - `stop` cancels the HTTP call and keeps the partial file for resuming.
@@ -71,6 +74,16 @@ class ExcultusDownloaderModule(reactContext: ReactApplicationContext) :
     promise.resolve(null)
   }
 
+  override fun remuxFragmentedMp4(path: String, promise: Promise) {
+    executor.execute {
+      try {
+        promise.resolve(Mp4Remuxer.remuxIfFragmented(File(path)))
+      } catch (error: Exception) {
+        promise.reject("E_REMUX", error.message ?: error.javaClass.simpleName, error)
+      }
+    }
+  }
+
   override fun invalidate() {
     tasks.values.forEach {
       it.cancelled = true
@@ -83,65 +96,76 @@ class ExcultusDownloaderModule(reactContext: ReactApplicationContext) :
   private fun run(taskId: String, url: String, file: File, task: Task) {
     try {
       file.parentFile?.mkdirs()
-      val existing = if (file.exists()) file.length() else 0L
-      val builder = Request.Builder().url(url).header("User-Agent", USER_AGENT)
-      if (existing > 0) {
-        builder.header("Range", "bytes=$existing-")
-      }
-      val call = client.newCall(builder.build())
-      task.call = call
-      if (task.cancelled) {
-        emitFailed(taskId, "cancelled", 0, "Cancelled")
-        return
-      }
-      call.execute().use { response ->
-        if (response.code == HTTP_RANGE_NOT_SATISFIABLE && existing > 0) {
-          // The partial file already holds every byte; JS validates its size.
-          emitCompleted(taskId, existing, existing, "")
+      val chunked = isChunkedHost(url)
+      var written = if (file.exists()) file.length() else 0L
+      var total = -1L
+      var contentType = ""
+      var lastEmit = 0L
+      while (true) {
+        val builder = Request.Builder().url(url).header("User-Agent", USER_AGENT)
+        when {
+          chunked -> builder.header("Range", "bytes=$written-${written + CHUNK_SIZE - 1}")
+          written > 0 -> builder.header("Range", "bytes=$written-")
+        }
+        val call = client.newCall(builder.build())
+        task.call = call
+        if (task.cancelled) {
+          emitFailed(taskId, "cancelled", 0, "Cancelled")
           return
         }
-        if (!response.isSuccessful) {
-          emitFailed(taskId, "http", response.code, "HTTP ${response.code}")
-          return
-        }
-        val body = response.body
-        if (body == null) {
-          emitFailed(taskId, "io", response.code, "Empty response body")
-          return
-        }
-        val append = response.code == HTTP_PARTIAL_CONTENT && existing > 0
-        val contentLength = body.contentLength()
-        val total = when {
-          contentLength < 0 -> -1L
-          append -> existing + contentLength
-          else -> contentLength
-        }
-        var written = if (append) existing else 0L
-        var lastEmit = 0L
-        FileOutputStream(file, append).use { output ->
-          body.byteStream().use { input ->
-            val buffer = ByteArray(BUFFER_SIZE)
-            while (true) {
-              if (task.cancelled) {
-                emitFailed(taskId, "cancelled", 0, "Cancelled")
-                return
-              }
-              val read = input.read(buffer)
-              if (read == -1) break
-              output.write(buffer, 0, read)
-              written += read
-              val now = SystemClock.elapsedRealtime()
-              if (now - lastEmit >= PROGRESS_INTERVAL_MS) {
-                lastEmit = now
-                emitProgress(taskId, written, total)
-              }
-            }
-            output.flush()
-            output.fd.sync()
+        val partial = call.execute().use { response ->
+          if (response.code == HTTP_RANGE_NOT_SATISFIABLE && written > 0) {
+            // The partial file already holds every byte; JS validates its size.
+            emitCompleted(taskId, written, written, contentType)
+            return
           }
+          if (!response.isSuccessful) {
+            emitFailed(taskId, "http", response.code, "HTTP ${response.code}")
+            return
+          }
+          val body = response.body
+          if (body == null) {
+            emitFailed(taskId, "io", response.code, "Empty response body")
+            return
+          }
+          val isPartial = response.code == HTTP_PARTIAL_CONTENT
+          if (!isPartial) {
+            written = 0L // The server ignored the range: rewrite from the start.
+          }
+          val contentLength = body.contentLength()
+          total = if (isPartial) contentRangeTotal(response.header("Content-Range")) else -1L
+          if (total < 0 && contentLength >= 0) {
+            total = written + contentLength
+          }
+          contentType = body.contentType()?.toString() ?: contentType
+          FileOutputStream(file, written > 0).use { output ->
+            body.byteStream().use { input ->
+              val buffer = ByteArray(BUFFER_SIZE)
+              while (true) {
+                if (task.cancelled) {
+                  emitFailed(taskId, "cancelled", 0, "Cancelled")
+                  return
+                }
+                val read = input.read(buffer)
+                if (read == -1) break
+                output.write(buffer, 0, read)
+                written += read
+                val now = SystemClock.elapsedRealtime()
+                if (now - lastEmit >= PROGRESS_INTERVAL_MS) {
+                  lastEmit = now
+                  emitProgress(taskId, written, total)
+                }
+              }
+              output.flush()
+              output.fd.sync()
+            }
+          }
+          isPartial
         }
-        emitCompleted(taskId, written, total, body.contentType()?.toString() ?: "")
+        // Chunked hosts answer one range per request; keep going until the end.
+        if (!chunked || !partial || total < 0 || written >= total) break
       }
+      emitCompleted(taskId, written, total, contentType)
     } catch (error: IOException) {
       val reason = when {
         task.cancelled -> "cancelled"
@@ -155,6 +179,17 @@ class ExcultusDownloaderModule(reactContext: ReactApplicationContext) :
       tasks.remove(taskId)
     }
   }
+
+  /**
+   * YouTube's media servers throttle open-ended requests to playback speed,
+   * but serve bounded ranges at full speed.
+   */
+  private fun isChunkedHost(url: String): Boolean =
+    url.toHttpUrlOrNull()?.host?.endsWith(".googlevideo.com") == true
+
+  /** Total size from `Content-Range: bytes 0-99/1234`, or -1 when unknown. */
+  private fun contentRangeTotal(header: String?): Long =
+    header?.substringAfterLast('/', "")?.toLongOrNull() ?: -1L
 
   private fun isOutOfSpace(error: IOException): Boolean {
     val message = error.message ?: return false
@@ -196,6 +231,7 @@ class ExcultusDownloaderModule(reactContext: ReactApplicationContext) :
     private const val CONNECT_TIMEOUT_SECONDS = 20L
     private const val READ_TIMEOUT_SECONDS = 60L
     private const val BUFFER_SIZE = 64 * 1024
+    private const val CHUNK_SIZE = 4L * 1024 * 1024
     private const val PROGRESS_INTERVAL_MS = 500L
     private const val HTTP_PARTIAL_CONTENT = 206
     private const val HTTP_RANGE_NOT_SATISFIABLE = 416

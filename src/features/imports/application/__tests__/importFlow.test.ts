@@ -97,7 +97,7 @@ describe('import flow (URL -> preview -> confirm)', () => {
     const preview = archivePreview([
       archiveItem('a', {
         availability: 'restricted',
-        acquisition: { kind: 'link-only' },
+        acquisition: { kind: 'none' },
       }),
     ]);
     await expect(
@@ -155,17 +155,19 @@ describe('import flow (URL -> preview -> confirm)', () => {
     expect(app.storage.files.has('/cache/two.m4a')).toBe(false);
   });
 
-  it('stores YouTube content as link + metadata only', async () => {
-    app.http.responses.set(
-      'https://www.youtube.com/oembed?format=json&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdQw4w9WgXcQ',
-      { title: 'Palestra', author_name: 'Canal' },
-    );
+  it('imports a YouTube video as a downloaded M4A, resolving the stream per download', async () => {
+    app.youtube.addVideo('dQw4w9WgXcQ', { title: 'Palestra', contentLength: 5 });
     const preview = await app.container.imports.previewFromUrl(
       'https://youtu.be/dQw4w9WgXcQ',
     );
     expect(preview.items[0]).toMatchObject({
-      availability: 'external',
-      acquisition: { kind: 'link-only' },
+      sourceId: 'video:dQw4w9WgXcQ',
+      availability: 'available',
+      fileExtension: 'm4a',
+      acquisition: {
+        kind: 'download',
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      },
     });
     const result = await app.container.imports.confirm({
       preview,
@@ -173,13 +175,75 @@ describe('import flow (URL -> preview -> confirm)', () => {
       target: { kind: 'none' },
       downloadNow: true,
     });
-    expect(result.enqueuedDownloads).toBe(0);
+    expect(result.enqueuedDownloads).toBe(1);
+    await settle();
+
+    // The expiring media URL is resolved right before the transfer.
+    const [started] = app.downloader.started;
+    expect(started!.url).toMatch(/^https:\/\/rr1\.googlevideo\.com\//);
+    app.downloader.fail(started!.taskId, 'http', 403);
+    await app.container.downloads.retry(result.audioIds[0]!);
+    await settle();
+    const retried = app.downloader.request(started!.taskId);
+    expect(retried.url).not.toBe(started!.url);
+
+    app.downloader.complete(started!.taskId, '12345');
+    await settle();
     const item = await app.container.audios.getItem(result.audioIds[0]!);
-    expect(item.audio).toMatchObject({
-      sourceType: 'youtube',
-      title: 'Palestra',
-      mediaUrl: undefined,
+    expect(item).toMatchObject({
+      offline: 'available',
+      localPath: `/app/audio/${item.audio.id}.m4a`,
     });
+    expect(item.audio).toMatchObject({ sourceType: 'youtube', title: 'Palestra' });
+  });
+
+  it('refuses a YouTube video without downloadable audio instead of saving the link', async () => {
+    await expect(
+      app.container.imports.previewFromUrl('https://www.youtube.com/watch?v=privat3vid0'),
+    ).rejects.toMatchObject({
+      code: 'source-unavailable',
+      userMessage: expect.stringContaining('não pode ser baixado'),
+    });
+    expect(app.downloader.started).toHaveLength(0);
+  });
+
+  it('marks unavailable playlist videos as restricted and imports only the others', async () => {
+    app.youtube.addVideo('aaaaaaaaaaa');
+    app.youtube.playlists.set('PLxxxxxxxxxx', {
+      id: 'PLxxxxxxxxxx',
+      title: 'Curso',
+      entries: [
+        { id: 'aaaaaaaaaaa', title: 'Aula 1' },
+        { id: 'bbbbbbbbbbb', title: 'Aula 2 (privada)' },
+        { id: 'aaaaaaaaaaa', title: 'Aula 1 (repetida)' },
+      ],
+      truncated: false,
+    });
+    const preview = await app.container.imports.previewFromUrl(
+      'https://www.youtube.com/playlist?list=PLxxxxxxxxxx',
+    );
+    expect(preview.source.title).toBe('Curso');
+    expect(preview.items.map(item => [item.sourceId, item.availability])).toEqual([
+      ['video:aaaaaaaaaaa', 'available'],
+      ['video:bbbbbbbbbbb', 'restricted'],
+    ]);
+    const result = await app.container.imports.confirm({
+      preview,
+      selectedSourceIds: preview.items.map(item => item.sourceId),
+      target: { kind: 'new', name: 'Curso' },
+      downloadNow: true,
+    });
+    expect(result.audioIds).toHaveLength(1);
+    expect(result.enqueuedDownloads).toBe(1);
+  });
+
+  it('fails a YouTube playlist import when offline', async () => {
+    app.youtube.offline = true;
+    await expect(
+      app.container.imports.previewFromUrl(
+        'https://www.youtube.com/playlist?list=PLxxxxxxxxxx',
+      ),
+    ).rejects.toMatchObject({ code: 'network' });
   });
 
   it('supports direct audio links', async () => {
