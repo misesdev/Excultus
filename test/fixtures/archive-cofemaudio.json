@@ -1,0 +1,237 @@
+{
+ "created": 1792552996,
+ "d1": "ia600107.us.archive.org",
+ "d2": "ia800107.us.archive.org",
+ "dir": "/25/items/COFemAudio",
+ "server": "ia600107.us.archive.org",
+ "item_size": 91086192289,
+ "files_count": 2361,
+ "metadata": {
+  "identifier": "COFemAudio",
+  "mediatype": "audio",
+  "collection": [
+   "opensource_audio",
+   "community"
+  ],
+  "creator": "Olavo de Carvalho",
+  "description": "Curso Online de Filosofia (COF) - Olavo de Carvalho<div>Todas as aulas em áudio. 1 a 585 com 4 aulas de introdução ao COF.</div><div>07/03/2009 a 01/01/2022</div>",
+  "language": "por",
+  "licenseurl": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  "scanner": "Internet Archive HTML5 Uploader 1.7.0",
+  "subject": "Filosofia",
+  "title": "COFemAudio",
+  "uploader": "osescribas@proton.me",
+  "publicdate": "2022-11-28 18:50:33",
+  "addeddate": "2022-11-28 18:50:33",
+  "curation": "[curator]validator@archive.org[/curator][date]20221128185533[/date][comment]checked for malware[/comment]"
+ },
+ "files": [
+  {
+   "name": "#PreCOF001.aac",
+   "source": "original",
+   "mtime": "1669994022",
+   "size": "67159673",
+   "md5": "1f9cd25b70e9ef6094fa4e77daf7cdb0",
+   "crc32": "f6e83e1d",
+   "sha1": "86408b0ddf11ed9c760fb770814c193a848950ed",
+   "format": "Advanced Audio Coding",
+   "length": "0",
+   "track": "01"
+  },
+  {
+   "name": "#PreCOF001.mp3",
+   "source": "derivative",
+   "bitrate": "84.4",
+   "format": "VBR MP3",
+   "original": "#PreCOF001.aac",
+   "mtime": "1670006001",
+   "size": "43347153",
+   "md5": "59982e66993859aee4012dd3d966f374",
+   "crc32": "01344c19",
+   "sha1": "b44117d874a06e2b4824c9451610cf2bdc79e0be",
+   "length": "4104.91"
+  },
+  {
+   "name": "#PreCOF001.png",
+   "source": "derivative",
+   "format": "PNG",
+   "original": "#PreCOF001.aac",
+   "mtime": "1670009998",
+   "size": "44538",
+   "md5": "84b242bcedee9cd4f31b226cc43a27ad",
+   "crc32": "740e702f",
+   "sha1": "1b1edaa7f9587b759e74855629efbefe393e12a5"
+  },
+  {
+   "name": "#PreCOF001_spectrogram.png",
+   "source": "derivative",
+   "format": "Spectrogram",
+   "original": "#PreCOF001.aac",
+   "mtime": "1670025215",
+   "size": "31116",
+   "md5": "62ace9d03453ecea456fe17e8654867a",
+   "crc32": "ac401b61",
+   "sha1": "86ec4fa2c8b2f9fa68534d8cd9fa3093d42c7676"
+  },
+  {
+   "name": "#PreCOF002.aac",
+   "source": "original",
+   "mtime": "1669994034",
+   "size": "22953600",
+   "md5": "61fda07813e4a06b45fec4b0d701dcb9",
+   "crc32": "8929ed6d",
+   "sha1": "d2f07d17c864cc159e218bec0356f9f96e76578f",
+   "format": "Advanced Audio Coding",
+   "length": "0",
+   "viruscheck": "1670004876",
+   "track": "02"
+  },
+  {
+   "name": "#PreCOF002.mp3",
+   "source": "derivative",
+   "bitrate": "85.2",
+   "format": "VBR MP3",
+   "original": "#PreCOF002.aac",
+   "mtime": "1670005926",
+   "size": "27086749",
+   "md5": "59a20965a267c696c4c401afb1e28789",
+   "crc32": "e6e209ee",
+   "sha1": "91a20def7d9bd0881d9feb47f70d2b2a8d9b988c",
+   "length": "2539.93"
+  },
+  {
+   "name": "#PreCOF002.png",
+   "source": "derivative",
+   "format": "PNG",
+   "original": "#PreCOF002.aac",
+   "mtime": "1670009978",
+   "size": "44011",
+   "md5": "0d8cf95204a836d11b4b57f7d4e587c9",
+   "crc32": "7f48b586",
+   "sha1": "43dcc26b2a64c2f271063e96f2620dac560ac390"
+  },
+  {
+   "name": "#PreCOF002_spectrogram.png",
+   "source": "derivative",
+   "format": "Spectrogram",
+   "original": "#PreCOF002.aac",
+   "mtime": "1670025200",
+   "size": "19318",
+   "md5": "49e5ff722dd53ba8bd9b10acad2024bd",
+   "crc32": "e19253ab",
+   "sha1": "aa866ca1ff102c6e8a18d76b772883599ffbadb3"
+  },
+  {
+   "name": "#PreCOF003.aac",
+   "source": "original",
+   "mtime": "1669994132",
+   "size": "103623889",
+   "md5": "b6ef3c6094314c310704cffde7032887",
+   "crc32": "0de0f418",
+   "sha1": "e1b173d6eb8190a234ef7cc7ea25017e1a7c6b22",
+   "format": "Advanced Audio Coding",
+   "length": "0",
+   "track": "03"
+  },
+  {
+   "name": "#PreCOF003.mp3",
+   "source": "derivative",
+   "bitrate": "87.2",
+   "format": "VBR MP3",
+   "original": "#PreCOF003.aac",
+   "mtime": "1670005852",
+   "size": "69349478",
+   "md5": "c94b6a0e935f2435f9d965288e63d6b1",
+   "crc32": "64f6e22c",
+   "sha1": "09a807baeaa184298b3b2e4c24e51ec9fee4f38c",
+   "length": "6354.68"
+  },
+  {
+   "name": "#PreCOF003.png",
+   "source": "derivative",
+   "format": "PNG",
+   "original": "#PreCOF003.aac",
+   "mtime": "1670009960",
+   "size": "47213",
+   "md5": "5f8555b6249ceb7269406119f355f0ad",
+   "crc32": "be41a15d",
+   "sha1": "e9ac7a2b6bebb0ff836fb262dcbb90febe228ed0"
+  },
+  {
+   "name": "#PreCOF003_spectrogram.png",
+   "source": "derivative",
+   "format": "Spectrogram",
+   "original": "#PreCOF003.aac",
+   "mtime": "1670047934",
+   "size": "56694",
+   "md5": "fe9853430ad8dc052e016eefaa101ec0",
+   "crc32": "3883877f",
+   "sha1": "43c7a0e7f92ad5092d5ff080f368edda8e6e35fa"
+  },
+  {
+   "name": "COFemAudio_archive.torrent",
+   "source": "metadata",
+   "btih": "58426d0e9877a37d33c5812fd5282653c94b6b1a",
+   "mtime": "1669749532",
+   "size": "762183",
+   "md5": "8eaa760319e5a9dfa0c2bfbaf4b51466",
+   "crc32": "dc588650",
+   "sha1": "30110cd57260010cd38c769c61a727cfe8f64948",
+   "format": "Archive BitTorrent"
+  },
+  {
+   "name": "COFemAudio_files.xml",
+   "source": "original",
+   "format": "Metadata",
+   "md5": "53bdbf56a7bfa45d1ca1e96491b32455",
+   "summation": "md5"
+  },
+  {
+   "name": "COFemAudio_meta.sqlite",
+   "source": "original",
+   "mtime": "1670004658",
+   "size": "1261568",
+   "md5": "095b8d52d332522ab6c27732280f6b46",
+   "crc32": "0885f610",
+   "sha1": "bca4e53ce9932bd0f1dc09b556963218c9777c0e",
+   "format": "Metadata"
+  },
+  {
+   "name": "COFemAudio_meta.xml",
+   "source": "original",
+   "mtime": "1670048056",
+   "size": "958",
+   "md5": "2b4a37d85ccb98bf597d4f2727f7d0e4",
+   "crc32": "b690c558",
+   "sha1": "3caae85006a841c2a58eaa021ff3fe8859336145",
+   "format": "Metadata"
+  },
+  {
+   "name": "__ia_thumb.jpg",
+   "source": "original",
+   "mtime": "1670048411",
+   "size": "3289",
+   "md5": "c12b18c43015fb6e95c81b625307e2cf",
+   "crc32": "a2c4145f",
+   "sha1": "bdf3765c3823aab640593bd48cfac99a170a5545",
+   "format": "Item Tile",
+   "rotation": "0"
+  },
+  {
+   "name": "extras/Bonus Track.ogg",
+   "source": "original",
+   "format": "Ogg Vorbis",
+   "size": "1000",
+   "length": "01:05",
+   "title": "Faixa bônus"
+  },
+  {
+   "name": "private-lecture.mp3",
+   "source": "original",
+   "format": "VBR MP3",
+   "size": "2000",
+   "length": "30.5",
+   "private": "true"
+  }
+ ]
+}

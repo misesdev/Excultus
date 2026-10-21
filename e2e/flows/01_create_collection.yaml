@@ -1,0 +1,37 @@
+appId: com.excultus
+name: Criar coleção (offline, determinístico)
+tags:
+  - offline
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Comece sua biblioteca"
+    timeout: 20000
+- tapOn:
+    id: "tab-CollectionsTab"
+- assertVisible: "Organize seus áudios"
+- tapOn:
+    id: "create-collection"
+# Validation: empty name is rejected with a field message.
+- tapOn:
+    id: "collection-form-submit"
+- assertVisible: "Informe um nome"
+- tapOn:
+    id: "collection-form-name"
+- inputText: "Curso E2E"
+- hideKeyboard
+- tapOn:
+    id: "collection-form-submit"
+- assertVisible:
+    id: "collection-detail"
+- assertVisible: "Coleção vazia"
+- assertVisible: "0 áudios · 0 offline"
+- back
+- assertVisible: "Curso E2E"
+# Persistence: the collection survives an app restart.
+- stopApp
+- launchApp
+- tapOn:
+    id: "tab-CollectionsTab"
+- assertVisible: "Curso E2E"

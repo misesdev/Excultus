@@ -1,0 +1,94 @@
+appId: com.excultus
+name: Importar do Internet Archive, baixar, reproduzir, retomar e excluir download
+# Requires internet access to archive.org (see docs/testing.md).
+tags:
+  - network
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "home-import"
+    timeout: 20000
+
+# 1-3. Import: resolve the URL, preview and select a single small lesson.
+- tapOn:
+    id: "home-import"
+- tapOn:
+    id: "import-example"
+- tapOn:
+    id: "import-url-submit"
+- extendedWaitUntil:
+    visible:
+      id: "import-preview"
+    timeout: 45000
+- assertVisible: "COFemAudio"
+- tapOn:
+    id: "import-toggle-all"
+- assertVisible: "0 de 589 selecionados"
+- tapOn:
+    id: "import-item-COFemAudio/#PreCOF002.aac"
+- assertVisible: "1 de 589 selecionados"
+- tapOn:
+    id: "import-confirm"
+
+# 4. Download completes, is validated (MD5) and the collection reports it offline.
+- extendedWaitUntil:
+    visible:
+      id: "collection-detail"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "1 áudio · 42 min · 1 offline"
+    timeout: 180000
+
+# 5-6. Play, jump forward, pause and favorite.
+- tapOn:
+    id: "collection-play"
+- extendedWaitUntil:
+    visible:
+      id: "mini-player"
+    timeout: 15000
+- tapOn:
+    id: "mini-player-toggle"
+- tapOn:
+    id: "mini-player"
+- assertVisible:
+    id: "full-player"
+- tapOn:
+    id: "player-forward"
+- tapOn:
+    id: "player-favorite"
+- assertVisible:
+    text: "Remover dos favoritos"
+    optional: true
+
+# 7-8. Close and reopen: the session and position are restored.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Continuar ouvindo"
+    timeout: 20000
+- tapOn:
+    id: "mini-player"
+- assertVisible: "0:[23][0-9]"
+
+# 9. Favorite persisted.
+- back
+- tapOn:
+    id: "shortcut-favorites"
+- assertVisible: "#PreCOF002"
+- back
+
+# 10. Delete the downloaded file; metadata stays in the library.
+- tapOn:
+    id: "tab-DownloadsTab"
+- tapOn:
+    id: "download-delete-.*"
+- tapOn:
+    id: "confirm-delete-download"
+- extendedWaitUntil:
+    visible: "Nenhum download"
+    timeout: 10000
+- tapOn:
+    id: "tab-HomeTab"
+- assertVisible: "#PreCOF002"

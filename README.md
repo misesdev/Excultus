@@ -1,97 +1,92 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Excultus
 
-# Getting Started
+Aplicativo Android (React Native CLI, **sem Expo**) para importar, organizar, baixar e ouvir
+conteúdos de áudio — cursos, audiolivros, podcasts e músicas — com funcionamento **offline-first**,
+sem conta e sem backend.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+- Importa itens do **Internet Archive** (ex.: `https://archive.org/details/COFemAudio`), links
+  diretos de áudio, arquivos do dispositivo e links do **YouTube** (somente link + metadados).
+- Downloads persistentes com fila, concorrência, pausa/retomada (HTTP Range), novas tentativas,
+  validação de integridade (tamanho + MD5) e controle de espaço.
+- Player completo em segundo plano (notificação, tela bloqueada, fones), velocidade, saltos,
+  repetir/aleatório, fila, temporizador, marcadores e retomada automática.
+- Coleções, playlists, favoritos, histórico, busca (FTS5), filtros e ordenação.
+- Backup/restauração em JSON, verificação e limpeza de armazenamento.
 
-## Step 1: Start Metro
+## Requisitos
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+| Ferramenta | Versão |
+|---|---|
+| Node.js | 22.22+ (`.nvmrc`) — o RN 0.88 exige ≥ 22.11 |
+| JDK | 17 ou 21 **completo** (com `javac`). Ex.: JBR do Android Studio |
+| Android SDK | Platform 36, Build-Tools 36, NDK 27.1.12297006 |
+| Dispositivo | Android 7.0+ (minSdk 24) |
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+> Se o JDK padrão do sistema for apenas um JRE, exporte `JAVA_HOME` antes do Gradle:
+> `export JAVA_HOME=/snap/android-studio/current/jbr` (ajuste o caminho).
 
-```sh
-# Using npm
-npm start
+## Instalação e execução
 
-# OR using Yarn
-yarn start
+```bash
+nvm use                    # Node 22
+npm install                # aplica patches/ via patch-package (postinstall)
+npm start                  # Metro
+npm run android            # build debug + instala no emulador/dispositivo
 ```
 
-## Step 2: Build and run your app
+## Scripts
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+| Script | O que faz |
+|---|---|
+| `npm run validate` | typecheck + lint + testes |
+| `npm run typecheck` | `tsc --noEmit` (strict) |
+| `npm run lint` | ESLint (inclui regras de fronteira entre camadas) |
+| `npm test` / `npm run test:coverage` | Jest (unitários, integração SQLite, componentes) |
+| `npm run e2e` / `npm run e2e:offline` | Fluxos Maestro (ver `docs/testing.md`) |
+| `npm run android:release` | APK de release |
 
-### Android
+Hooks Git (Husky): `pre-commit` roda lint-staged + typecheck; `pre-push` roda os testes.
 
-```sh
-# Using npm
-npm run android
+## APK de release
 
-# OR using Yarn
-yarn android
+```bash
+cd android && ./gradlew assembleRelease
+# saída: android/app/build/outputs/apk/release/app-release.apk
+adb install -r android/app/build/outputs/apk/release/app-release.apk
 ```
 
-### iOS
+O template assina o release com a chave de **debug** — suficiente para instalação pessoal.
+Para distribuir, gere um keystore próprio (`keytool -genkeypair ...`), configure
+`signingConfigs.release` em `android/app/build.gradle` e mantenha as senhas fora do Git
+(`~/.gradle/gradle.properties`).
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Estrutura
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```text
+src/
+├── app/            composition root (DI), bootstrap, navegação, providers
+├── core/           erros tipados, portas compartilhadas, utilitários puros
+├── design-system/  tokens, tema, ícones, tipografia, animações e componentes App*
+├── features/       audios, collections, downloads, imports, player, playlists, bookmarks,
+│                   history, search, settings (+ library e home: composição de UI)
+├── infrastructure/ SQLite, sistema de arquivos, HTTP, providers externos, áudio, downloader
+└── shared/         hooks de apresentação, formulários, feedback (toast/snackbar)
+specs/              spec TurboModule (codegen) do downloader nativo
+android/.../downloads/  módulo Kotlin (OkHttp) do downloader
+test/               fixtures, fakes e suporte de testes
+e2e/flows/          fluxos Maestro
 ```
 
-Then, and every time you update your native dependencies, run:
+Detalhes em [`docs/architecture.md`](docs/architecture.md). Decisões em [`docs/decisions/`](docs/decisions).
 
-```sh
-bundle exec pod install
-```
+## Documentação
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+- [Arquitetura](docs/architecture.md) · [Design System](docs/design-system.md) · [Banco de dados](docs/database.md)
+- [Player](docs/audio-player.md) · [Downloads](docs/downloads.md) · [Fontes externas](docs/external-sources.md)
+- [Testes](docs/testing.md) · [Plano](docs/implementation-plan.md) · [Progresso](docs/progress.md) · [Problemas conhecidos](docs/known-issues.md)
 
-```sh
-# Using npm
-npm run ios
+## Privacidade
 
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Nenhum dado sai do dispositivo além das requisições às fontes que você importa. Sem analytics,
+sem conta. Arquivos ficam em diretórios privados do app; arquivos do dispositivo entram pelo
+seletor do sistema (SAF), sem permissões amplas de armazenamento.
