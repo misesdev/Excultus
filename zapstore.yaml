@@ -1,0 +1,67 @@
+# zapstore.yaml — Excultus
+# Configuração do zsp (https://github.com/zapstore/zsp), que publica o app no
+# Zapstore (https://zapstore.dev), loja de apps Android descentralizada sobre Nostr.
+#
+# O APK vem do GitHub Release mais recente (criado pelo workflow
+# .github/workflows/release.yml). Guia completo: docs/zapstore.md
+
+repository: https://github.com/misesdev/Excultus
+website: https://github.com/misesdev/Excultus
+
+name: Excultus
+
+summary: "Biblioteca de áudio offline: importe, baixe e ouça cursos, audiolivros, podcasts e músicas"
+
+description: |
+  Excultus é um app de código aberto para montar sua biblioteca pessoal de áudio e ouvir
+  tudo offline. Sem conta, sem backend, sem anúncios e sem analytics: tudo fica no seu
+  aparelho.
+
+  IMPORTE DE ONDE QUISER
+
+  - Itens do Internet Archive (archive.org)
+  - Vídeos e playlists do YouTube, com o áudio baixado em M4A
+  - Links diretos de áudio e arquivos do próprio dispositivo
+
+  DOWNLOADS QUE NÃO SE PERDEM
+
+  Fila com pausa e retomada, novas tentativas automáticas, validação de integridade e
+  controle de espaço em disco.
+
+  PLAYER COMPLETO
+
+  Reprodução em segundo plano com notificação e controles na tela bloqueada, velocidade,
+  saltos, fila, repetir e aleatório, temporizador, marcadores e retomada de onde parou.
+
+  ORGANIZAÇÃO
+
+  Coleções, playlists, favoritos, histórico e busca de texto completo. Backup e
+  restauração em JSON.
+
+  Código aberto sob a licença GPL-3.0-or-later.
+
+license: GPL-3.0-or-later
+
+tags:
+  - audio
+  - player
+  - podcast
+  - audiobook
+  - music
+  - offline
+  - youtube
+  - internet-archive
+  - privacy
+  - open-source
+
+icon: ./android/app/src/main/ic_launcher-playstore.png
+
+# Capturas de tela: veja store/screenshots/README.md e descomente ao adicioná-las.
+# images:
+#   - ./store/screenshots/01-inicio.png
+#   - ./store/screenshots/02-colecoes.png
+#   - ./store/screenshots/03-player.png
+#   - ./store/screenshots/04-downloads.png
+
+# Notas da release: seção da versão publicada (formato Keep a Changelog).
+release_notes: ./CHANGELOG.md

@@ -82,6 +82,7 @@ npm run android    # build debug e instala no emulador ou dispositivo
 | `npm test` / `npm run test:coverage` | Jest (unitários, integração com SQLite e componentes) |
 | `npm run e2e` / `npm run e2e:offline` | Fluxos Maestro (ver [`docs/testing.md`](docs/testing.md)) |
 | `npm run android:release` | APK de release |
+| `npm run zapstore:check` / `npm run zapstore:publish` | Confere / publica a release no Zapstore (requer `zsp`) |
 
 Hooks Git (Husky): o `pre-commit` roda lint-staged e typecheck; o `pre-push` roda os testes.
 
@@ -114,9 +115,25 @@ cd android && ./gradlew assembleRelease bundleRelease
 - **Sem as propriedades:** o build usa a chave de debug e avisa no log. Esse resultado não serve
   para publicação.
 - **Backup:** guarde o keystore e as senhas. Sem eles não dá para publicar atualizações.
-- **Nova versão:** incremente `versionCode` e `versionName` em `android/app/build.gradle`.
+- **Nova versão:** incremente `versionCode` e ajuste `versionName` em
+  `android/app/build.gradle`, use a mesma versão no `package.json` e registre as mudanças no
+  [`CHANGELOG.md`](CHANGELOG.md).
 - **Trocar de debug para release:** um app debug instalado tem outra assinatura, então é preciso
   desinstalá-lo antes de instalar o release no mesmo aparelho, e isso apaga os dados locais.
+
+## Publicação no Zapstore
+
+O app é distribuído pelo [Zapstore](https://zapstore.dev), uma loja Android descentralizada
+sobre Nostr, com a configuração em [`zapstore.yaml`](zapstore.yaml). A cada push na `main`
+com uma versão nova, o workflow [`release.yml`](.github/workflows/release.yml):
+
+1. gera o APK assinado;
+2. cria o GitHub Release `v<versão>` com as notas do `CHANGELOG.md`;
+3. publica no Zapstore com o [`zsp`](https://github.com/zapstore/zsp).
+
+Para publicar manualmente: `npm run zapstore:check` e depois `npm run zapstore:publish`.
+Secrets necessários, vínculo da chave de assinatura à identidade Nostr e passo a passo em
+[`docs/zapstore.md`](docs/zapstore.md).
 
 ## Ícone do app
 
@@ -161,6 +178,7 @@ as dependências de plataforma entram por portas e adaptadores. Os detalhes est�
 
 - [Arquitetura](docs/architecture.md) · [Design System](docs/design-system.md) · [Banco de dados](docs/database.md)
 - [Player](docs/audio-player.md) · [Downloads](docs/downloads.md) · [Fontes externas](docs/external-sources.md)
+- [Publicação no Zapstore](docs/zapstore.md) · [Changelog](CHANGELOG.md)
 - [Testes](docs/testing.md) · [Plano](docs/implementation-plan.md) · [Progresso](docs/progress.md) · [Problemas conhecidos](docs/known-issues.md)
 
 ## Privacidade

@@ -81,3 +81,8 @@ yarn-error.log
 keystore.properties
 *.apk
 *.aab
+
+# Local secrets (Zapstore/Nostr signing key, keystore password)
+.env
+.env.*
+!.env.example

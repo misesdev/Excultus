@@ -1,0 +1,167 @@
+name: Release
+
+# A cada push na main: se a versão do package.json ainda não tem tag, gera o
+# APK assinado, cria o GitHub Release e publica no Zapstore. Guia: docs/zapstore.md
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  # SHA-256 do certificado de release (público). Impede publicar um APK
+  # assinado com outra chave, por exemplo a de debug.
+  RELEASE_CERT_SHA256: a77d2afad125438ae242da2f71078b8ea0fa1effc8de60373cf1c8f1c72c6ad4
+  ZSP_VERSION: 0.4.17
+
+jobs:
+  release:
+    name: Build, GitHub Release e Zapstore
+    runs-on: ubuntu-latest
+    environment: Prod
+    permissions:
+      contents: write
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── Versão ────────────────────────────────────────────────────────────
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          GRADLE_VERSION=$(sed -n 's/^ *versionName "\(.*\)"$/\1/p' android/app/build.gradle)
+          if [ "$VERSION" != "$GRADLE_VERSION" ]; then
+            echo "::error::package.json ($VERSION) e versionName do build.gradle ($GRADLE_VERSION) divergem."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          if git ls-remote --tags origin "refs/tags/${{ steps.version.outputs.tag }}" | grep -q .; then
+            echo "Tag ${{ steps.version.outputs.tag }} já existe: nada a publicar."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract release notes
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          awk -v v="${{ steps.version.outputs.version }}" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found && /^\[.*\]: / { exit }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            echo "::error::CHANGELOG.md não tem a seção [${{ steps.version.outputs.version }}]."
+            exit 1
+          fi
+
+      # ── Toolchain ─────────────────────────────────────────────────────────
+      - name: Setup Node.js
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install JS dependencies
+        if: steps.tag_check.outputs.exists == 'false'
+        run: npm ci
+
+      - name: Setup Java 17
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+
+      # ── Keystore (nunca vai para o repositório) ───────────────────────────
+      - name: Decode keystore
+        if: steps.tag_check.outputs.exists == 'false'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Configure os secrets do keystore no environment Prod (docs/zapstore.md)."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/excultus-release.jks"
+
+      # ── Build do APK assinado ─────────────────────────────────────────────
+      - name: Build release APK
+        if: steps.tag_check.outputs.exists == 'false'
+        env:
+          ORG_GRADLE_PROJECT_EXCULTUS_RELEASE_STORE_FILE: ${{ runner.temp }}/excultus-release.jks
+          ORG_GRADLE_PROJECT_EXCULTUS_RELEASE_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_EXCULTUS_RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_EXCULTUS_RELEASE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x android/gradlew
+          cd android && ./gradlew assembleRelease --no-daemon
+
+      - name: Verify signing certificate
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          CERT=$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+          if [ "$CERT" != "$RELEASE_CERT_SHA256" ]; then
+            echo "::error::APK assinado com o certificado errado ($CERT)."
+            exit 1
+          fi
+          cp "$APK" "$RUNNER_TEMP/excultus-${{ steps.version.outputs.tag }}.apk"
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/excultus-release.jks"
+
+      # ── GitHub Release ────────────────────────────────────────────────────
+      - name: Upload APK artifact
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: excultus-release-apk
+          path: ${{ runner.temp }}/excultus-${{ steps.version.outputs.tag }}.apk
+          retention-days: 90
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Excultus ${{ steps.version.outputs.tag }}
+          body_path: ${{ runner.temp }}/notes.md
+          files: ${{ runner.temp }}/excultus-${{ steps.version.outputs.tag }}.apk
+
+      # ── Zapstore ──────────────────────────────────────────────────────────
+      - name: Publish to Zapstore
+        if: steps.tag_check.outputs.exists == 'false'
+        env:
+          SIGN_WITH: ${{ secrets.SIGN_WITH }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$SIGN_WITH" ]; then
+            echo "::warning::Secret SIGN_WITH não configurado: publicação no Zapstore ignorada."
+            exit 0
+          fi
+          curl -fsSL -o "$RUNNER_TEMP/zsp" \
+            "https://github.com/zapstore/zsp/releases/download/v${ZSP_VERSION}/zsp-${ZSP_VERSION}-linux-amd64"
+          chmod +x "$RUNNER_TEMP/zsp"
+          "$RUNNER_TEMP/zsp" publish --quiet zapstore.yaml
