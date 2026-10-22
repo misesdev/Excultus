@@ -89,8 +89,9 @@ export function MiniPlayer({ onOpen }: MiniPlayerProps) {
 const useStyles = makeStyles(theme => ({
   container: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderTopLeftRadius: theme.radius.md,
-    borderTopRightRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     overflow: 'hidden',
   },
   content: {

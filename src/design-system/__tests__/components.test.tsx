@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderWithTheme } from '@test/support/renderWithProviders';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { renderWithTheme, SAFE_AREA_METRICS } from '@test/support/renderWithProviders';
 import {
   AppButton,
   AppCheckbox,
@@ -11,7 +12,9 @@ import {
   AppListSkeleton,
   AppProgressBar,
   AppSwitch,
+  AppTabBar,
   AppTextInput,
+  ThemeProvider,
 } from '@design-system';
 
 describe('AppButton', () => {
@@ -146,5 +149,44 @@ describe('feedback states', () => {
     );
     await fireEvent.press(screen.getByRole('button', { name: 'Excluir' }));
     expect(onConfirm).toHaveBeenCalled();
+  });
+});
+
+describe('AppTabBar', () => {
+  const items = (focused: string, onPress = jest.fn()) =>
+    ['Início', 'Coleções', 'Downloads'].map(label => ({
+      key: label,
+      label,
+      icon: 'home-outline' as const,
+      activeIcon: 'home' as const,
+      focused: label === focused,
+      onPress: () => onPress(label),
+    }));
+
+  it('marks the focused tab as selected and navigates on press', async () => {
+    const onPress = jest.fn();
+    await renderWithTheme(<AppTabBar items={items('Início', onPress)} />);
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
+    expect(screen.getByRole('tab', { name: 'Início' })).toBeSelected();
+    expect(screen.getByRole('tab', { name: 'Downloads' })).not.toBeSelected();
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Downloads' }));
+    expect(onPress).toHaveBeenCalledWith('Downloads');
+  });
+
+  it('follows the focused tab after layout', async () => {
+    const { rerender } = await renderWithTheme(<AppTabBar items={items('Início')} />);
+    await fireEvent(screen.getByTestId('app-tab-bar'), 'layout', {
+      nativeEvent: { layout: { width: 300, height: 56, x: 0, y: 0 } },
+    });
+    await rerender(
+      <SafeAreaProvider initialMetrics={SAFE_AREA_METRICS}>
+        <ThemeProvider>
+          <AppTabBar items={items('Coleções')} />
+        </ThemeProvider>
+      </SafeAreaProvider>,
+    );
+    expect(screen.getByRole('tab', { name: 'Coleções' })).toBeSelected();
+    expect(screen.getByRole('tab', { name: 'Início' })).not.toBeSelected();
   });
 });

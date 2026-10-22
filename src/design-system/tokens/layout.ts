@@ -50,6 +50,8 @@ export const componentSizes = {
   listItemMinHeight: 64,
   headerHeight: 56,
   tabBarHeight: 64,
+  /** Space between the floating tab dock and the bottom inset / mini player. */
+  tabBarInset: 8,
   miniPlayerHeight: 64,
   progressBarHeight: 4,
   sliderTrackHeight: 4,

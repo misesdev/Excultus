@@ -8,7 +8,7 @@ Tudo em `src/design-system`, importado **apenas** via `@design-system` (regra de
   `success`, `warning`, `error`, `skeleton`...). Tema escuro padrão com a paleta da especificação.
   `artworkHues` gera capas determinísticas para itens sem arte.
 - **Tipografia** (`typography.ts`): variantes `display`, `title`, `heading`, `subheading`, `body`,
-  `bodyStrong`, `caption`, `captionStrong`, `overline`, `button`, `mono` (números tabulares).
+  `bodyStrong`, `caption`, `captionStrong`, `overline`, `label` (rótulos curtos, ex.: abas), `button`, `mono` (números tabulares).
   `MAX_FONT_SIZE_MULTIPLIER = 1.6` mantém layouts usáveis com fonte ampliada.
 - **Layout** (`layout.ts`): `spacing` (xs 4 → xxxl 48), `radius`, `opacity`, `iconSizes`,
   `componentSizes` (alvo de toque mínimo 48dp, alturas de botão/input/tab bar/mini player, tamanhos de capa).
@@ -27,7 +27,7 @@ Base: `AppScreen`, `AppHeader`, `AppText`, `AppButton`, `AppIconButton`, `AppTex
 `AppSnackbar`, `AppBadge`, `AppChip`, `AppDivider`, `AppSkeleton`/`AppListSkeleton`,
 `AppLoadingIndicator`, `AppEmptyState`, `AppErrorState`, `AppProgressBar`, `AppSlider`,
 `AppSwitch`, `AppCheckbox`, `AppListItem`, `AppSectionHeader`, `AppContextMenu`, `AppArtwork`,
-`AppAvatar`, `AppTabBar`, `AppIcon` (Ionicons).
+`AppAvatar`, `AppTabBar` (dock flutuante arredondado com destaque que desliza até a aba ativa; o mini player flutua acima dele como um card), `AppIcon` (Ionicons).
 
 De áudio (nas features): `AudioCard`, `AudioListItem`, `AudioArtwork`, `AudioMetadata`,
 `AudioDuration`, `AudioProgress`, `AudioWaveform`, `AudioActionsMenu`, `CollectionCard`,

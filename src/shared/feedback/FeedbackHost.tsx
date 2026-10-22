@@ -29,6 +29,7 @@ export function FeedbackHost() {
   }
   const bottom =
     insets.bottom +
+    theme.sizes.tabBarInset * 2 +
     theme.sizes.tabBarHeight +
     theme.sizes.miniPlayerHeight +
     theme.spacing.lg;

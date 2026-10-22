@@ -10,6 +10,7 @@ export type TypographyVariant =
   | 'caption'
   | 'captionStrong'
   | 'overline'
+  | 'label'
   | 'button'
   | 'mono';
 
@@ -60,6 +61,12 @@ export const typography: Record<TypographyVariant, TypeStyle> = {
     lineHeight: 14,
     fontWeight: fontWeights.bold,
     letterSpacing: 1.2,
+  },
+  label: {
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: 0.2,
   },
   button: {
     fontSize: 15,
