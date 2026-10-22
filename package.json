@@ -2,6 +2,8 @@
   "name": "excultus",
   "version": "0.0.1",
   "private": true,
+  "description": "Biblioteca de áudio offline-first para Android: importe, baixe e ouça cursos, audiolivros, podcasts e músicas.",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
