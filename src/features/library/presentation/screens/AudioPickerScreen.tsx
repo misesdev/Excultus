@@ -15,8 +15,8 @@ import {
   AppSearchInput,
   makeStyles,
   useTheme,
+  useTranslation,
 } from '@design-system';
-import { pluralize } from '@core/utils';
 import { AudioListItem } from '@features/audios/presentation';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
 import { useDebouncedValue } from '@shared/hooks/useDebouncedValue';
@@ -25,6 +25,7 @@ import { listStyles } from '@shared/styles/listStyles';
 
 /** Picks existing library audios to add to a collection or playlist. */
 export function AudioPickerScreen() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -49,7 +50,7 @@ export function AudioPickerScreen() {
       navigation.goBack();
       return added;
     },
-    { successMessage: `Adicionado a ${target.name}` },
+    { successMessage: t('audioPicker.addedTo', { name: target.name }) },
   );
 
   const toggle = (audioId: string) =>
@@ -66,7 +67,7 @@ export function AudioPickerScreen() {
   return (
     <AppScreen>
       <AppHeader
-        title="Adicionar áudios"
+        title={t('audioPicker.title')}
         subtitle={target.name}
         onBack={navigation.goBack}
         backIcon="close"
@@ -75,7 +76,7 @@ export function AudioPickerScreen() {
         <AppSearchInput
           value={text}
           onChangeText={setText}
-          placeholder="Buscar na biblioteca"
+          placeholder={t('home.searchLibrary')}
         />
       </View>
       {loading ? (
@@ -95,10 +96,8 @@ export function AudioPickerScreen() {
           ListEmptyComponent={
             <AppEmptyState
               icon="library-outline"
-              title={query ? 'Nada encontrado' : 'Biblioteca vazia'}
-              description={
-                query ? undefined : 'Importe conteúdos para poder adicioná-los aqui.'
-              }
+              title={query ? t('library.noResults') : t('audioPicker.emptyLibrary')}
+              description={query ? undefined : t('audioPicker.emptyDescription')}
             />
           }
           renderItem={({ item }) => {
@@ -111,7 +110,9 @@ export function AudioPickerScreen() {
                 trailing={
                   <AppCheckbox
                     checked={checked}
-                    accessibilityLabel={`Selecionar ${item.audio.title}`}
+                    accessibilityLabel={t('audioPicker.select', {
+                      title: item.audio.title,
+                    })}
                     onChange={() => toggle(item.audio.id)}
                   />
                 }
@@ -124,8 +125,8 @@ export function AudioPickerScreen() {
         <AppButton
           label={
             selected.size > 0
-              ? `Adicionar ${pluralize(selected.size, 'áudio', 'áudios')}`
-              : 'Selecione áudios'
+              ? t('audioPicker.addCount', { count: selected.size })
+              : t('audioPicker.selectAudios')
           }
           onPress={() => add.run()}
           disabled={selected.size === 0}

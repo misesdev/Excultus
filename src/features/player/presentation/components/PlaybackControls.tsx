@@ -7,6 +7,7 @@ import {
   makeStyles,
   useTheme,
   type IconName,
+  useTranslation,
 } from '@design-system';
 import { useSettings } from '@shared/hooks/useSettings';
 import { usePlayerStore } from '../store/playerStore';
@@ -16,6 +17,7 @@ const SKIP_FORWARD_ICON: IconName = 'play-forward';
 
 /** Main transport row: previous, rewind, play/pause, forward, next. */
 export function PlaybackControls() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const { player } = useDependencies();
@@ -29,14 +31,14 @@ export function PlaybackControls() {
       <AppIconButton
         icon="play-skip-back"
         size="lg"
-        accessibilityLabel="Faixa anterior"
+        accessibilityLabel={t('player.previous')}
         onPress={() => player.skipToPrevious()}
         testID="player-previous"
       />
       <AppIconButton
         icon={SKIP_BACK_ICON}
         size="lg"
-        accessibilityLabel={`Voltar ${skipBackwardSec} segundos`}
+        accessibilityLabel={t('player.skipBack', { seconds: skipBackwardSec })}
         onPress={() => player.skipBackward()}
         testID="player-rewind"
       />
@@ -46,7 +48,7 @@ export function PlaybackControls() {
           size="xl"
           iconSize="xl"
           variant="filled"
-          accessibilityLabel={playing ? 'Pausar' : 'Reproduzir'}
+          accessibilityLabel={playing ? t('player.pause') : t('audioActions.play')}
           onPress={() => {
             haptic('medium');
             player.togglePlayPause();
@@ -62,14 +64,14 @@ export function PlaybackControls() {
       <AppIconButton
         icon={SKIP_FORWARD_ICON}
         size="lg"
-        accessibilityLabel={`Avançar ${skipForwardSec} segundos`}
+        accessibilityLabel={t('player.skipForward', { seconds: skipForwardSec })}
         onPress={() => player.skipForward()}
         testID="player-forward"
       />
       <AppIconButton
         icon="play-skip-forward"
         size="lg"
-        accessibilityLabel="Próxima faixa"
+        accessibilityLabel={t('player.next')}
         onPress={() => player.skipToNext()}
         testID="player-next"
       />

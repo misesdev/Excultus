@@ -13,6 +13,7 @@ import {
   AppSearchInput,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
 import type { AudioLibraryItem } from '@features/audios';
 import type { LibraryFilter, LibrarySort } from '@features/search';
@@ -22,15 +23,16 @@ import { usePaginatedQuery } from '@shared/hooks/usePaginatedQuery';
 import { listStyles } from '@shared/styles/listStyles';
 import { LibraryAudioRow } from '../components/LibraryAudioRow';
 import {
-  FILTER_LABELS,
+  filterLabel,
   LibraryFilters,
-  SORT_OPTIONS,
   sortLabel,
+  sortOptions,
 } from '../components/LibraryFilters';
 import { usePlayAudio } from '../hooks/usePlayAudio';
 
 /** Whole-library search with filters, sorting and incremental loading. */
 export function LibraryScreen() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const navigation = useAppNavigation();
   const route = useAppRoute<typeof Routes.Library>();
@@ -50,7 +52,7 @@ export function LibraryScreen() {
     );
 
   const ids = items.map(item => item.audio.id);
-  const title = route.params?.title ?? 'Biblioteca';
+  const title = route.params?.title ?? t('library.title');
   const idsRef = useRef(ids);
   idsRef.current = ids;
   const onPress = useCallback(
@@ -67,7 +69,7 @@ export function LibraryScreen() {
         actions={
           <AppIconButton
             icon="swap-vertical"
-            accessibilityLabel={`Ordenar: ${sortLabel(sort)}`}
+            accessibilityLabel={t('library.sortBy', { sort: sortLabel(sort) })}
             onPress={() => setSortSheet(true)}
           />
         }
@@ -76,13 +78,13 @@ export function LibraryScreen() {
         <AppSearchInput
           value={text}
           onChangeText={setText}
-          placeholder="Título, artista, álbum, coleção ou origem"
+          placeholder={t('library.searchPlaceholder')}
           testID="library-search"
         />
       </View>
       <LibraryFilters value={filter} onChange={setFilter} />
       <AppText variant="caption" color="textMuted" style={styles.sortLabel}>
-        Ordenado por {sortLabel(sort).toLowerCase()}
+        {t('library.sortedBy', { sort: sortLabel(sort).toLowerCase() })}
       </AppText>
       {loading ? (
         <AppListSkeleton />
@@ -116,21 +118,24 @@ export function LibraryScreen() {
             query || filter !== 'all' ? (
               <AppEmptyState
                 icon="search-outline"
-                title="Nada encontrado"
+                title={t('library.noResults')}
                 description={
                   query
-                    ? `Nenhum resultado para "${query}" em ${FILTER_LABELS[
-                        filter
-                      ].toLowerCase()}.`
-                    : `Nenhum áudio em ${FILTER_LABELS[filter].toLowerCase()}.`
+                    ? t('library.noResultsFor', {
+                        query,
+                        filter: filterLabel(filter).toLowerCase(),
+                      })
+                    : t('library.noAudiosIn', {
+                        filter: filterLabel(filter).toLowerCase(),
+                      })
                 }
               />
             ) : (
               <AppEmptyState
                 icon="library-outline"
-                title="Sua biblioteca está vazia"
-                description="Importe áudios do Internet Archive, de links diretos ou do seu dispositivo."
-                actionLabel="Importar conteúdo"
+                title={t('library.empty.title')}
+                description={t('library.empty.description')}
+                actionLabel={t('home.importContent')}
                 onAction={() => navigation.navigate(Routes.Import)}
               />
             )
@@ -139,8 +144,8 @@ export function LibraryScreen() {
       )}
       <OptionSheet
         visible={sortSheet}
-        title="Ordenar por"
-        options={SORT_OPTIONS}
+        title={t('library.sortTitle')}
+        options={sortOptions()}
         selected={sort}
         onSelect={setSort}
         onClose={() => setSortSheet(false)}

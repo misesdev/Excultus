@@ -12,6 +12,7 @@ import {
   youTubeWatchUrl,
   type YouTubeReference,
 } from './youtubeUrl';
+import { t } from '@core/i18n';
 
 /** Playlist entries checked per import; each one costs a resolution request. */
 export const MAX_PLAYLIST_ENTRIES = 200;
@@ -157,7 +158,7 @@ export class YouTubeProvider implements AudioSourceProvider {
     if (!items.some(item => item.availability === 'available')) {
       throw new SourceUnavailableError('No downloadable video in playlist', {
         details: { playlistId },
-        userMessage: 'Nenhum vídeo desta playlist tem áudio disponível para download.',
+        userMessage: t('errors.youtube.emptyPlaylist'),
       });
     }
     if (playlist.truncated) {

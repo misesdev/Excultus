@@ -6,13 +6,14 @@ import type {
   SourceAudioItem,
   SourceMetadata,
 } from '@features/imports';
+import { t } from '@core/i18n';
 
-const LOCAL_METADATA: SourceMetadata = {
+const localMetadata = (): SourceMetadata => ({
   sourceType: 'local',
   sourceId: 'device',
-  title: 'Arquivos do dispositivo',
+  title: t('imports.sources.deviceFiles'),
   originalUrl: '',
-};
+});
 
 /**
  * Imports audio files chosen by the user through the system picker. Files
@@ -56,6 +57,6 @@ export class LocalFileProvider implements LocalAudioSource {
         acquisition: { kind: 'copy', localPath: file.localPath, sourceUri: file.name },
       });
     }
-    return { metadata: LOCAL_METADATA, items, rejected };
+    return { metadata: localMetadata(), items, rejected };
   }
 }

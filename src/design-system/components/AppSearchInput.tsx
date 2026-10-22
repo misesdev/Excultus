@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppIconButton } from './AppIconButton';
 import { AppTextInput } from './AppTextInput';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppSearchInputProps {
   value: string;
@@ -13,17 +14,18 @@ export interface AppSearchInputProps {
 export function AppSearchInput({
   value,
   onChangeText,
-  placeholder = 'Buscar',
+  placeholder,
   autoFocus,
   testID,
 }: AppSearchInputProps) {
+  const { t } = useTranslation();
   return (
     <AppTextInput
       testID={testID}
       value={value}
       onChangeText={onChangeText}
-      placeholder={placeholder}
-      accessibilityLabel={placeholder}
+      placeholder={placeholder ?? t('common.search')}
+      accessibilityLabel={placeholder ?? t('common.search')}
       leadingIcon="search"
       autoFocus={autoFocus}
       autoCorrect={false}
@@ -35,7 +37,7 @@ export function AppSearchInput({
             icon="close-circle"
             size="sm"
             color="textMuted"
-            accessibilityLabel="Limpar busca"
+            accessibilityLabel={t('common.clearSearch')}
             onPress={() => onChangeText('')}
           />
         ) : null

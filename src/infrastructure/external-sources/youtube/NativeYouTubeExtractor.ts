@@ -7,6 +7,7 @@ import {
 import { firstNonEmpty, parseHttpsUrl } from '@core/utils';
 import NativeExcultusYouTube from '../../../../specs/NativeExcultusYouTube';
 import type { YouTubeExtractor, YouTubePlaylist, YouTubeVideo } from './YouTubeExtractor';
+import { t } from '@core/i18n';
 
 function positiveMs(seconds: number): number | undefined {
   return seconds > 0 ? seconds * 1000 : undefined;
@@ -26,19 +27,17 @@ function toYouTubeError(error: unknown): AppError {
     case 'E_UNAVAILABLE':
       return new SourceUnavailableError(message, {
         cause: error,
-        userMessage:
-          'Este vídeo do YouTube não pode ser baixado: ele é privado, foi removido ou tem restrição de idade ou região.',
+        userMessage: t('errors.youtube.videoUnavailable'),
       });
     case 'E_NO_AUDIO':
       return new UnsupportedFormatError(message, {
         cause: error,
-        userMessage: 'Este vídeo do YouTube não oferece um áudio que possa ser baixado.',
+        userMessage: t('errors.youtube.noAudio'),
       });
     default:
       return new SourceUnavailableError(message, {
         cause: error,
-        userMessage:
-          'Não foi possível obter o áudio deste link do YouTube. Confira se o vídeo existe e está público, ou tente novamente mais tarde.',
+        userMessage: t('errors.youtube.extractionFailed'),
       });
   }
 }

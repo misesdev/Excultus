@@ -1,3 +1,5 @@
+import { formatDecimal, getLocale, t } from '../i18n';
+
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
@@ -41,7 +43,7 @@ export function formatBytes(bytes: number | undefined): string {
     unit++;
   }
   const digits = unit === 0 || value >= 100 ? 0 : 1;
-  return `${value.toFixed(digits).replace('.', ',')} ${BYTE_UNITS[unit]}`;
+  return `${formatDecimal(Number(value.toFixed(digits)), digits)} ${BYTE_UNITS[unit]}`;
 }
 
 export function formatPercent(ratio: number): string {
@@ -56,7 +58,7 @@ const RELATIVE_THRESHOLDS = {
   week: 7 * 24 * 60 * 60 * MS_PER_SECOND,
 };
 
-/** "agora", "há 5 min", "há 3 h", "ontem", "há 4 dias" or a short date. */
+/** "just now", "5 min ago", "3 h ago", "yesterday", "4 days ago" or a short date. */
 export function formatRelativeDate(iso: string, nowMs: number = Date.now()): string {
   const time = Date.parse(iso);
   if (Number.isNaN(time)) {
@@ -64,23 +66,36 @@ export function formatRelativeDate(iso: string, nowMs: number = Date.now()): str
   }
   const diff = Math.max(0, nowMs - time);
   if (diff < RELATIVE_THRESHOLDS.minute) {
-    return 'agora';
+    return t('format.relative.now');
   }
   if (diff < RELATIVE_THRESHOLDS.hour) {
-    return `há ${Math.floor(diff / RELATIVE_THRESHOLDS.minute)} min`;
+    return t('format.relative.minutes', {
+      count: Math.floor(diff / RELATIVE_THRESHOLDS.minute),
+    });
   }
   if (diff < RELATIVE_THRESHOLDS.day) {
-    return `há ${Math.floor(diff / RELATIVE_THRESHOLDS.hour)} h`;
+    return t('format.relative.hours', {
+      count: Math.floor(diff / RELATIVE_THRESHOLDS.hour),
+    });
   }
   const days = Math.floor(diff / RELATIVE_THRESHOLDS.day);
   if (days === 1) {
-    return 'ontem';
+    return t('format.relative.yesterday');
   }
   if (diff < RELATIVE_THRESHOLDS.week) {
-    return `há ${days} dias`;
+    return t('format.relative.days', { count: days });
   }
+  return formatShortDate(time);
+}
+
+/** Numeric date in the current locale: 10/21/2026 (en) or 21/10/2026 (pt). */
+export function formatShortDate(time: number): string {
   const date = new Date(time);
-  return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`;
+  const day = pad2(date.getDate());
+  const month = pad2(date.getMonth() + 1);
+  return getLocale() === 'pt'
+    ? `${day}/${month}/${date.getFullYear()}`
+    : `${month}/${day}/${date.getFullYear()}`;
 }
 
 export function pluralize(count: number, singular: string, plural: string): string {

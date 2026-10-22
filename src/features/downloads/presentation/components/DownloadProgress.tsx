@@ -1,23 +1,24 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AppProgressBar, AppText, makeStyles } from '@design-system';
+import { AppProgressBar, AppText, makeStyles, useTranslation } from '@design-system';
+import type { TranslationKey } from '@core/i18n';
 import { formatBytes, formatPercent } from '@core/utils';
 import { downloadProgress, type DownloadStatus } from '../../index';
 
-const STATUS_LABELS: Record<DownloadStatus, string> = {
-  queued: 'Na fila',
-  downloading: 'Baixando',
-  paused: 'Pausado',
-  completed: 'Concluído',
-  failed: 'Falhou',
-  cancelled: 'Cancelado',
+const STATUS_LABELS: Record<DownloadStatus, TranslationKey> = {
+  queued: 'downloads.status.queued',
+  downloading: 'downloads.status.downloading',
+  paused: 'downloads.status.paused',
+  completed: 'downloads.status.completed',
+  failed: 'downloads.status.failed',
+  cancelled: 'downloads.status.cancelled',
 };
 
 export interface DownloadProgressProps {
   status: DownloadStatus;
   bytesDownloaded: number;
   totalBytes?: number;
-  /** Extra info, e.g. "aguardando Wi-Fi". */
+  /** Extra info, e.g. "waiting for Wi-Fi". */
   note?: string;
 }
 
@@ -27,10 +28,14 @@ export function DownloadProgress({
   totalBytes,
   note,
 }: DownloadProgressProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const ratio = downloadProgress({ status, bytesDownloaded, totalBytes });
   const sizes = totalBytes
-    ? `${formatBytes(bytesDownloaded)} de ${formatBytes(totalBytes)}`
+    ? t('downloads.sizeOf', {
+        downloaded: formatBytes(bytesDownloaded),
+        total: formatBytes(totalBytes),
+      })
     : formatBytes(bytesDownloaded);
   const color =
     status === 'failed' ? 'error' : status === 'completed' ? 'success' : 'primary';
@@ -40,7 +45,7 @@ export function DownloadProgress({
         <AppProgressBar
           progress={ratio}
           color={color}
-          accessibilityLabel={`${STATUS_LABELS[status]} ${formatPercent(ratio)}`}
+          accessibilityLabel={`${t(STATUS_LABELS[status])} ${formatPercent(ratio)}`}
         />
       )}
       <AppText
@@ -49,7 +54,7 @@ export function DownloadProgress({
         numberOfLines={1}
       >
         {[
-          STATUS_LABELS[status],
+          t(STATUS_LABELS[status]),
           status === 'completed' ? formatBytes(totalBytes) : sizes,
           note,
         ]

@@ -6,6 +6,7 @@ import {
   AppLoadingIndicator,
   AppScreen,
   ThemeProvider,
+  useTranslation,
 } from '@design-system';
 import { getUserMessage } from '@core/errors';
 import { bootstrapApplication } from './bootstrap/bootstrap';
@@ -22,6 +23,7 @@ type BootState =
   | { kind: 'failed'; message: string };
 
 function AppContent({ adaptersFactory }: { adaptersFactory?: () => PlatformAdapters }) {
+  const { t } = useTranslation();
   const [state, setState] = useState<BootState>({ kind: 'loading' });
 
   const boot = useCallback(() => {
@@ -47,10 +49,10 @@ function AppContent({ adaptersFactory }: { adaptersFactory?: () => PlatformAdapt
       ) : (
         <AppScreen>
           {state.kind === 'loading' ? (
-            <AppLoadingIndicator fill label="Preparando sua biblioteca…" />
+            <AppLoadingIndicator fill label={t('app.preparing')} />
           ) : (
             <AppErrorState
-              title="Não foi possível iniciar"
+              title={t('app.startFailed')}
               message={state.message}
               onRetry={boot}
             />

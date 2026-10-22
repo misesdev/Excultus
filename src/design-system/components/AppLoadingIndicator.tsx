@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { makeStyles, useTheme } from '../theme/ThemeProvider';
 import { AppText } from '../typography/AppText';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppLoadingIndicatorProps {
   label?: string;
@@ -15,13 +16,14 @@ export function AppLoadingIndicator({
   fill = false,
   size = 'large',
 }: AppLoadingIndicatorProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   return (
     <View
       style={[styles.root, fill && styles.fill]}
       accessibilityRole="progressbar"
-      accessibilityLabel={label ?? 'Carregando'}
+      accessibilityLabel={label ?? t('common.loading')}
       testID="loading-indicator"
     >
       <ActivityIndicator size={size} color={theme.colors.primary} />

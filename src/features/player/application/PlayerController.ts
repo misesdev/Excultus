@@ -30,6 +30,7 @@ import type {
   PlayerSessionStore,
   RemoteCommand,
 } from './ports';
+import { t } from '@core/i18n';
 
 export type PlayerStatus =
   | 'idle'
@@ -195,8 +196,7 @@ export class PlayerController implements AudioPlayerService {
       if (start === null) {
         throw new AudioPlaybackError('No audio in the queue can play now', {
           details: { count: created.items.length },
-          userMessage:
-            'Nenhum áudio desta lista pode tocar agora. Baixe os áudios (os do YouTube só tocam baixados) ou conecte-se à internet.',
+          userMessage: t('errors.player.nothingPlayable'),
         });
       }
       await this.saveProgress();

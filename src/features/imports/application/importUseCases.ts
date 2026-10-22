@@ -22,6 +22,7 @@ import type {
   SourceMetadata,
 } from './AudioSourceProvider';
 import type { SourceProviderRegistry } from './SourceProviderRegistry';
+import { t } from '@core/i18n';
 
 export interface ImportPreview {
   providerLabel: string;
@@ -162,7 +163,7 @@ export function createImportUseCases(deps: ImportUseCaseDeps) {
         return null;
       }
       return {
-        providerLabel: 'Arquivos do dispositivo',
+        providerLabel: t('imports.sources.deviceFiles'),
         source: metadata,
         items,
         rejected,

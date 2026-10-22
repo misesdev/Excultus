@@ -8,13 +8,15 @@ import {
   AppSkeleton,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
-import { formatBytes, pluralize } from '@core/utils';
+import { formatBytes } from '@core/utils';
 import { feedback } from '@shared/feedback/feedbackStore';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
 import { useQuery } from '@shared/hooks/useQuery';
 
 export function StorageSection() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { storage } = useDependencies();
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
@@ -25,8 +27,8 @@ export function StorageSection() {
     usage.refetch();
     feedback.success(
       freed > 0
-        ? `${formatBytes(freed)} liberados`
-        : 'Nenhum arquivo temporário sobrando',
+        ? t('settings.storage.freed', { size: formatBytes(freed) })
+        : t('settings.storage.noTempFiles'),
     );
   });
   const verify = useAsyncAction(async () => {
@@ -34,41 +36,36 @@ export function StorageSection() {
     usage.refetch();
     feedback.info(
       report.missing === 0 && report.orphansRemoved === 0
-        ? `Tudo certo: ${pluralize(
-            report.checked,
-            'arquivo verificado',
-            'arquivos verificados',
-          )}`
-        : `${pluralize(
-            report.missing,
-            'arquivo ausente',
-            'arquivos ausentes',
-          )} · ${pluralize(report.orphansRemoved, 'órfão removido', 'órfãos removidos')}`,
+        ? t('settings.storage.allGood', { count: report.checked })
+        : `${t('settings.storage.missing', { count: report.missing })} · ${t(
+            'settings.storage.orphansRemoved',
+            { count: report.orphansRemoved },
+          )}`,
     );
   });
   const deleteAll = useAsyncAction(async () => {
     const count = await storage.deleteAllDownloads();
-    feedback.success(`${pluralize(count, 'arquivo removido', 'arquivos removidos')}`);
+    feedback.success(t('settings.storage.filesRemoved', { count }));
   });
 
   return (
     <>
-      <AppSectionHeader title="Armazenamento" variant="overline" />
+      <AppSectionHeader title={t('settings.storage.title')} variant="overline" />
       <View style={styles.usage} testID="storage-usage">
         {usage.data ? (
           <>
             <AppText variant="heading">{formatBytes(usage.data.audioBytes)}</AppText>
             <AppText variant="caption" color="textSecondary">
-              {pluralize(
-                usage.data.audioFileCount,
-                'arquivo baixado',
-                'arquivos baixados',
-              )}{' '}
-              · capas {formatBytes(usage.data.artworkBytes)} · temporários{' '}
-              {formatBytes(usage.data.tempBytes)}
+              {t('settings.storage.usage', {
+                files: t('settings.storage.downloadedFiles', {
+                  count: usage.data.audioFileCount,
+                }),
+                covers: formatBytes(usage.data.artworkBytes),
+                temp: formatBytes(usage.data.tempBytes),
+              })}
             </AppText>
             <AppText variant="caption" color="textMuted">
-              {formatBytes(usage.data.freeBytes)} livres no dispositivo
+              {t('imports.freeSpace', { size: formatBytes(usage.data.freeBytes) })}
             </AppText>
           </>
         ) : (
@@ -76,41 +73,41 @@ export function StorageSection() {
         )}
       </View>
       <AppListItem
-        title="Limpar arquivos temporários"
-        subtitle="Remove downloads parciais que não serão retomados"
+        title={t('settings.storage.cleanTemp')}
+        subtitle={t('settings.storage.cleanTempDescription')}
         leadingIcon="sparkles-outline"
         onPress={() => cleanTemp.run()}
         disabled={cleanTemp.running}
       />
       <AppListItem
-        title="Verificar arquivos"
-        subtitle="Detecta arquivos ausentes e remove órfãos"
+        title={t('settings.storage.verify')}
+        subtitle={t('settings.storage.verifyDescription')}
         leadingIcon="shield-checkmark-outline"
         onPress={() => verify.run()}
         disabled={verify.running}
       />
       <AppListItem
-        title="Excluir todos os downloads"
-        subtitle="Mantém a biblioteca, progresso e marcadores"
+        title={t('settings.storage.deleteAll')}
+        subtitle={t('settings.storage.deleteAllDescription')}
         leadingIcon="trash-outline"
         destructive
         onPress={() => setConfirmDeleteAll(true)}
       />
       <AppDialog
         visible={confirmDeleteAll}
-        title="Excluir todos os downloads?"
-        message="Todos os arquivos de áudio baixados serão apagados. Nada será removido da biblioteca."
+        title={t('settings.storage.deleteAllDialog.title')}
+        message={t('settings.storage.deleteAllDialog.message')}
         onDismiss={() => setConfirmDeleteAll(false)}
         actions={[
           {
-            label: 'Excluir downloads',
+            label: t('settings.storage.deleteAllDialog.confirm'),
             variant: 'destructive',
             onPress: () => {
               setConfirmDeleteAll(false);
               deleteAll.run();
             },
           },
-          { label: 'Cancelar', onPress: () => setConfirmDeleteAll(false) },
+          { label: t('common.cancel'), onPress: () => setConfirmDeleteAll(false) },
         ]}
       />
     </>

@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { AppArtwork, AppBadge, AppButton, AppText, makeStyles } from '@design-system';
-import { formatBytes, pluralize } from '@core/utils';
+import {
+  AppArtwork,
+  AppBadge,
+  AppButton,
+  AppText,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
+import { formatBytes } from '@core/utils';
 import type { ImportPreview as ImportPreviewModel, SelectionSummary } from '../../index';
 
 export interface ImportPreviewProps {
@@ -20,6 +27,7 @@ export function ImportPreview({
   onSelectAll,
   onClear,
 }: ImportPreviewProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const [expanded, setExpanded] = useState(false);
   const { source, items, rejected } = preview;
@@ -46,7 +54,7 @@ export function ImportPreview({
             </AppText>
           )}
           <AppText variant="caption" color="textMuted">
-            {pluralize(items.length, 'arquivo de áudio', 'arquivos de áudio')}
+            {t('imports.preview.audioFiles', { count: items.length })}
           </AppText>
         </View>
       </View>
@@ -56,36 +64,45 @@ export function ImportPreview({
           color="textSecondary"
           numberOfLines={expanded ? undefined : 3}
           onPress={() => setExpanded(value => !value)}
-          accessibilityHint="Toque para expandir a descrição"
+          accessibilityHint={t('imports.preview.expandHint')}
         >
           {source.description}
         </AppText>
       )}
       {source.license && (
         <AppText variant="caption" color="textMuted" numberOfLines={1}>
-          Licença: {source.license}
+          {t('imports.preview.license', { license: source.license })}
         </AppText>
       )}
       {rejected.length > 0 && (
         <AppText variant="caption" color="warning">
-          {pluralize(rejected.length, 'arquivo ignorado', 'arquivos ignorados')} (formato
-          não suportado): {rejected.join(', ')}
+          {t('imports.preview.rejected', {
+            count: rejected.length,
+            files: rejected.join(', '),
+          })}
         </AppText>
       )}
       <View style={styles.toolbar}>
         <View style={styles.toolbarText}>
           <AppText variant="captionStrong" testID="import-selection-count">
-            {summary.count} de {selectableCount} selecionados
+            {t('imports.preview.selectedCount', {
+              count: summary.count,
+              total: selectableCount,
+            })}
           </AppText>
           <AppText variant="caption" color="textSecondary">
             {formatBytes(summary.totalBytes)}
             {summary.unknownSizeCount > 0
-              ? ` + ${summary.unknownSizeCount} sem tamanho informado`
+              ? ` + ${t('imports.preview.unknownSize', {
+                  count: summary.unknownSizeCount,
+                })}`
               : ''}
           </AppText>
         </View>
         <AppButton
-          label={allSelected ? 'Limpar' : 'Selecionar tudo'}
+          label={
+            allSelected ? t('imports.preview.clear') : t('imports.preview.selectAll')
+          }
           size="sm"
           variant="ghost"
           onPress={allSelected ? onClear : onSelectAll}

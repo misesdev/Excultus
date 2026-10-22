@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { AppListItem, AppSwitch, AppText, type IconName } from '@design-system';
+import {
+  AppListItem,
+  AppSwitch,
+  AppText,
+  type IconName,
+  useTranslation,
+} from '@design-system';
 import { OptionSheet, type Option } from '@shared/components/OptionSheet';
 
 export function SwitchSetting({
@@ -17,13 +23,14 @@ export function SwitchSetting({
   onChange: (value: boolean) => void;
   testID?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <AppListItem
       title={title}
       subtitle={subtitle}
       leadingIcon={icon}
       onPress={() => onChange(!value)}
-      accessibilityLabel={`${title}: ${value ? 'ativado' : 'desativado'}`}
+      accessibilityLabel={`${title}: ${value ? t('settings.on') : t('settings.off')}`}
       trailing={
         <AppSwitch
           value={value}

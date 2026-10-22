@@ -8,11 +8,13 @@ import {
   AppIconButton,
   AppListSkeleton,
   AppScreen,
+  useTranslation,
 } from '@design-system';
 import { useQuery } from '@shared/hooks/useQuery';
 import { CollectionGrid } from '../components/CollectionGrid';
 
 export function CollectionsScreen() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const { collections } = useDependencies();
   const { data, loading, error, refetch, refreshing } = useQuery(
@@ -24,19 +26,19 @@ export function CollectionsScreen() {
   return (
     <AppScreen testID="collections-screen">
       <AppHeader
-        title="Coleções"
+        title={t('tabs.collections')}
         variant="large"
         actions={
           <>
             <AppIconButton
               icon="cloud-download-outline"
-              accessibilityLabel="Importar conteúdo"
+              accessibilityLabel={t('home.importContent')}
               onPress={() => navigation.navigate(Routes.Import)}
             />
             <AppIconButton
               icon="add"
               variant="tonal"
-              accessibilityLabel="Criar coleção"
+              accessibilityLabel={t('home.empty.createCollection')}
               onPress={() => navigation.navigate(Routes.CollectionForm)}
               testID="create-collection"
             />
@@ -58,11 +60,11 @@ export function CollectionsScreen() {
           empty={
             <AppEmptyState
               icon="albums-outline"
-              title="Organize seus áudios"
-              description="Coleções agrupam cursos, audiolivros, podcasts e músicas. Um áudio pode estar em várias coleções."
-              actionLabel="Criar coleção"
+              title={t('collections.emptyList.title')}
+              description={t('collections.emptyList.description')}
+              actionLabel={t('home.empty.createCollection')}
               onAction={() => navigation.navigate(Routes.CollectionForm)}
-              secondaryActionLabel="Importar do Internet Archive"
+              secondaryActionLabel={t('home.importContent')}
               onSecondaryAction={() => navigation.navigate(Routes.Import)}
             />
           }

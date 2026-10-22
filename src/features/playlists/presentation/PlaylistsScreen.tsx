@@ -11,12 +11,14 @@ import {
   AppListItem,
   AppListSkeleton,
   AppScreen,
+  useTranslation,
 } from '@design-system';
-import { formatHumanDuration, pluralize } from '@core/utils';
+import { formatHumanDuration } from '@core/utils';
 import { useQuery } from '@shared/hooks/useQuery';
 import { listStyles } from '@shared/styles/listStyles';
 
 export function PlaylistsScreen() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const { playlists } = useDependencies();
   const { data, loading, error, refetch, refreshing } = useQuery(
@@ -28,13 +30,13 @@ export function PlaylistsScreen() {
   return (
     <AppScreen>
       <AppHeader
-        title="Playlists"
+        title={t('home.shortcuts.playlists')}
         onBack={navigation.goBack}
         actions={
           <AppIconButton
             icon="add"
             variant="tonal"
-            accessibilityLabel="Criar playlist"
+            accessibilityLabel={t('playlists.create')}
             onPress={() => navigation.navigate(Routes.PlaylistForm)}
             testID="create-playlist"
           />
@@ -54,9 +56,9 @@ export function PlaylistsScreen() {
           ListEmptyComponent={
             <AppEmptyState
               icon="list-outline"
-              title="Nenhuma playlist"
-              description="Playlists são sequências de reprodução que você monta com áudios de qualquer coleção."
-              actionLabel="Criar playlist"
+              title={t('playlists.emptyList.title')}
+              description={t('playlists.emptyList.description')}
+              actionLabel={t('playlists.create')}
               onAction={() => navigation.navigate(Routes.PlaylistForm)}
             />
           }
@@ -68,7 +70,7 @@ export function PlaylistsScreen() {
               }
               title={summary.playlist.name}
               subtitle={[
-                pluralize(summary.audioCount, 'áudio', 'áudios'),
+                t('common.audioCount', { count: summary.audioCount }),
                 summary.totalDurationMs > 0
                   ? formatHumanDuration(summary.totalDurationMs)
                   : null,

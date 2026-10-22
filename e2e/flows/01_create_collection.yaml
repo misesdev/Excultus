@@ -6,17 +6,17 @@ tags:
 - launchApp:
     clearState: true
 - extendedWaitUntil:
-    visible: "Comece sua biblioteca"
+    visible: "Start your library"
     timeout: 20000
 - tapOn:
     id: "tab-CollectionsTab"
-- assertVisible: "Organize seus áudios"
+- assertVisible: "Organize your tracks"
 - tapOn:
     id: "create-collection"
 # Validation: empty name is rejected with a field message.
 - tapOn:
     id: "collection-form-submit"
-- assertVisible: "Informe um nome"
+- assertVisible: "Enter a name"
 - tapOn:
     id: "collection-form-name"
 - inputText: "Curso E2E"
@@ -25,8 +25,8 @@ tags:
     id: "collection-form-submit"
 - assertVisible:
     id: "collection-detail"
-- assertVisible: "Coleção vazia"
-- assertVisible: "0 áudios · 0 offline"
+- assertVisible: "Empty collection"
+- assertVisible: "0 tracks · 0 offline"
 - back
 - assertVisible: "Curso E2E"
 # Persistence: the collection survives an app restart.

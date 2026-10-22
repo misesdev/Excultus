@@ -47,7 +47,7 @@ export interface AppSnackbarProps {
   tone?: AppToastTone;
 }
 
-/** Message with a single follow-up action (e.g. "Tentar novamente"). */
+/** Message with a single follow-up action (e.g. "Try again"). */
 export function AppSnackbar({
   message,
   actionLabel,

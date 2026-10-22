@@ -1,93 +1,98 @@
-# Publicação no Zapstore
+# Publishing on Zapstore
 
-O Excultus é publicado no [Zapstore](https://zapstore.dev), uma loja de apps Android
-descentralizada construída sobre o Nostr. A publicação usa o
-[`zsp`](https://github.com/zapstore/zsp) (sucessor do antigo `zapstore-cli`) e a
-configuração em [`zapstore.yaml`](../zapstore.yaml).
+Excultus is published on [Zapstore](https://zapstore.dev), a decentralized Android app store
+built on Nostr. Publishing uses [`zsp`](https://github.com/zapstore/zsp) (the successor of the
+old `zapstore-cli`) and the configuration in [`zapstore.yaml`](../zapstore.yaml).
 
-## Como funciona
+## How it works
 
-O `zsp` publica três eventos Nostr assinados com a sua chave (`nsec`):
+`zsp` publishes three Nostr events signed with your key (`nsec`):
 
-| Evento | Kind | Conteúdo |
+| Event | Kind | Content |
 |---|---|---|
-| App | 32267 | nome, resumo, descrição, ícone, capturas, licença, tags |
-| Release | 30063 | versão e notas (seção da versão no [`CHANGELOG.md`](../CHANGELOG.md)) |
-| Asset | 3063 | URL do APK, SHA-256, tamanho, hash do certificado de assinatura |
+| App | 32267 | name, summary, description, icon, screenshots, license, tags |
+| Release | 30063 | version and notes (the version's section in [`CHANGELOG.md`](../CHANGELOG.md)) |
+| Asset | 3063 | APK URL, SHA-256, size, signing certificate hash |
 
-O APK vem do **GitHub Release mais recente** do repositório. Quem instala pelo Zapstore
-confere a integridade pelo SHA-256 e pelo certificado gravados nos eventos. Por isso
-**toda versão precisa ser assinada com a mesma chave de release**.
+The APK comes from the repository's **latest GitHub Release**. People installing from Zapstore
+verify its integrity through the SHA-256 and the certificate recorded in the events, so
+**every version must be signed with the same release key**.
 
-## Fluxo automático (GitHub Actions)
+## Automated flow (GitHub Actions)
 
-O workflow [`release.yml`](../.github/workflows/release.yml) roda a cada push na `main`:
+The [`release.yml`](../.github/workflows/release.yml) workflow runs on every push to `main`:
 
-1. lê a versão do `package.json` e confere se é igual ao `versionName` do
+1. reads the version from `package.json` and checks that it matches `versionName` in
    `android/app/build.gradle`;
-2. se a tag `v<versão>` já existe, não faz nada (pushes comuns não geram release);
-3. confere se o `CHANGELOG.md` tem a seção da versão;
-4. gera o APK assinado e confere se o certificado é o de release (nunca publica um APK
-   assinado com a chave de debug);
-5. cria o GitHub Release `v<versão>` com o APK e as notas;
-6. publica no Zapstore com `zsp publish` (só se o secret `SIGN_WITH` existir).
+2. if the `v<version>` tag already exists, it does nothing (regular pushes don't create
+   releases);
+3. checks that `CHANGELOG.md` has a section for the version;
+4. builds the signed APK and checks that it carries the release certificate (it never
+   publishes an APK signed with the debug key);
+5. creates the GitHub Release `v<version>` with the APK and the notes;
+6. publishes to Zapstore with `zsp publish` (only if the `SIGN_WITH` secret is set).
 
-O workflow [`ci.yml`](../.github/workflows/ci.yml) roda `npm run validate` em pushes e PRs.
+The [`ci.yml`](../.github/workflows/ci.yml) workflow runs `npm run validate` on pushes and PRs.
 
-## Configuração inicial (uma vez)
+## One-time setup
 
-### 1. Chave Nostr
+### 1. Nostr key
 
-Use a `nsec` da sua identidade Nostr (Primal, Damus, Amethyst…); o app fica associado a
-esse perfil. Para gerar uma nova: `nak key generate`
-([nak](https://github.com/fiatjaf/nak)). Guarde a `nsec` em segredo.
+Use the `nsec` of your Nostr identity (Primal, Damus, Amethyst…); the app is tied to that
+profile. To generate a new one: `nak key generate` ([nak](https://github.com/fiatjaf/nak)).
+Keep the `nsec` secret.
 
-### 2. Secrets do GitHub
+### 2. GitHub secrets
 
-Em **GitHub → Settings → Environments → `Prod` → Environment secrets**:
+Under **GitHub → Settings → Environments → `Prod` → Environment secrets**:
 
-| Secret | Valor |
+| Secret | Value |
 |---|---|
 | `KEYSTORE_BASE64` | `base64 -w 0 ~/.android/excultus-release.jks` |
-| `KEYSTORE_PASSWORD` | senha do keystore (`EXCULTUS_RELEASE_STORE_PASSWORD`) |
+| `KEYSTORE_PASSWORD` | keystore password (`EXCULTUS_RELEASE_STORE_PASSWORD`) |
 | `KEY_ALIAS` | `excultus` |
-| `KEY_PASSWORD` | senha da chave (`EXCULTUS_RELEASE_KEY_PASSWORD`) |
-| `SIGN_WITH` | sua `nsec1...` (ou uma URL `bunker://...` de assinatura remota, mais segura) |
+| `KEY_PASSWORD` | key password (`EXCULTUS_RELEASE_KEY_PASSWORD`) |
+| `SIGN_WITH` | your `nsec1...` (or a `bunker://...` remote-signing URL, which is safer) |
 
-As senhas estão em `~/.gradle/gradle.properties`. Copie o resultado do `base64` direto para
-o GitHub; não salve esse texto em nenhum arquivo do projeto.
+The passwords are in `~/.gradle/gradle.properties`. To copy a value without printing it, pipe
+it to the clipboard, e.g.
+`base64 -w 0 ~/.android/excultus-release.jks | xclip -selection clipboard`. Never save these
+values in any project file.
 
-### 3. Vincular a chave de assinatura à identidade Nostr
+### 3. Link the signing key to your Nostr identity
 
-Prova que quem assina o APK é o mesmo dono do perfil Nostr. O Zapstore exibe essa
-verificação aos usuários. Rode uma vez (e renove antes de expirar; o padrão é 1 ano):
+This proves that whoever signs the APK also owns the Nostr profile; Zapstore shows this
+verification to users. Run it once (and renew before it expires; the default is 1 year):
 
 ```bash
 zsp identity --link-key ~/.android/excultus-release.jks --key-alias excultus
 ```
 
-O `zsp` pede a senha do keystore e usa o `SIGN_WITH` do ambiente ou do `.env`.
+`zsp` asks for the keystore password and uses `SIGN_WITH` from the environment or `.env`.
 
-### 4. Capturas de tela
+### 4. Screenshots
 
-Adicione as imagens em `store/screenshots/` (veja o README da pasta) e descomente
-`images:` no `zapstore.yaml`.
+They live in `store/screenshots/` (see the folder's README) and are listed under `images:` in
+`zapstore.yaml`.
 
-## Publicar uma nova versão
+## Publishing a new version
 
 ```bash
-# 1. Suba a versão: package.json ("version") e android/app/build.gradle
-#    (versionCode +1 e versionName igual ao package.json)
-# 2. Adicione a seção "## [x.y.z] - AAAA-MM-DD" no CHANGELOG.md
-# 3. Commit e push na main
-git commit -am "Versão x.y.z"
+# 1. Bump the version: package.json ("version") and android/app/build.gradle
+#    (versionCode +1 and versionName equal to package.json)
+# 2. Add a "## [x.y.z] - YYYY-MM-DD" section to CHANGELOG.md
+# 3. Commit and push to main
+git commit -am "Version x.y.z"
 git push
 ```
 
-## Publicação manual (sem CI)
+Changes to the listing alone (description, screenshots) are published with the next version,
+or right away with a manual publish (below).
 
-Instale o `zsp` (Linux amd64; outras plataformas na
-[página de releases](https://github.com/zapstore/zsp/releases)):
+## Manual publish (without CI)
+
+Install `zsp` (Linux amd64; other platforms on the
+[releases page](https://github.com/zapstore/zsp/releases)):
 
 ```bash
 ZSP_VERSION=0.4.17
@@ -96,15 +101,15 @@ curl -fsSL -o zsp \
 chmod +x zsp && sudo mv zsp /usr/local/bin/zsp
 ```
 
-Crie o `.env` a partir do [`.env.example`](../.env.example) (o `.env` é ignorado pelo git) e,
-com o GitHub Release da versão já criado:
+Create `.env` from [`.env.example`](../.env.example) (`.env` is ignored by git) and, once the
+version's GitHub Release exists:
 
 ```bash
-npm run zapstore:check     # confere se o zsp encontra o APK arm64 no GitHub Release
-npm run zapstore:publish   # publica (mostra uma prévia e pede confirmação)
+npm run zapstore:check     # checks that zsp finds the arm64 APK in the GitHub Release
+npm run zapstore:publish   # publishes (shows a preview and asks for confirmation)
 ```
 
-## Página do app
+## App page
 
-Depois de publicado, o app aparece em `https://zapstore.dev/app/com.excultus` e na busca
-do app Zapstore por "Excultus".
+Once published, the app is at `https://zapstore.dev/app/com.excultus` and shows up when
+searching for "Excultus" in the Zapstore app.

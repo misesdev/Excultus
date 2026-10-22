@@ -14,6 +14,7 @@ import {
   AppScreen,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
 import { formatClock, formatRelativeDate } from '@core/utils';
 import type { AudioLibraryItem } from '@features/audios';
@@ -24,6 +25,7 @@ import { listStyles } from '@shared/styles/listStyles';
 
 /** Playback log (most recent first) with shortcuts to in-progress/completed audios. */
 export function HistoryScreen() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const navigation = useAppNavigation();
   const { history } = useDependencies();
@@ -32,19 +34,19 @@ export function HistoryScreen() {
   const { items, loading, loadingMore, error, refetch, refreshing, loadMore } =
     usePaginatedQuery(page => history.recent(page), [], ['history', 'library']);
   const clear = useAsyncAction(() => history.clear(), {
-    successMessage: 'Histórico limpo',
+    successMessage: t('history.cleared'),
   });
   const play = useCallback((item: AudioLibraryItem) => playAudio(item), [playAudio]);
 
   return (
     <AppScreen>
       <AppHeader
-        title="Histórico"
+        title={t('home.shortcuts.history')}
         onBack={navigation.goBack}
         actions={
           <AppIconButton
             icon="trash-outline"
-            accessibilityLabel="Limpar histórico"
+            accessibilityLabel={t('history.clear')}
             disabled={items.length === 0}
             onPress={() => setConfirmClear(true)}
           />
@@ -56,22 +58,22 @@ export function HistoryScreen() {
         contentContainerStyle={styles.shortcuts}
       >
         <AppChip
-          label="Em andamento"
+          label={t('library.filters.inProgress')}
           icon="hourglass-outline"
           onPress={() =>
             navigation.navigate(Routes.Library, {
               filter: 'in-progress',
-              title: 'Em andamento',
+              title: t('library.filters.inProgress'),
             })
           }
         />
         <AppChip
-          label="Concluídos"
+          label={t('library.filters.completed')}
           icon="checkmark-done-outline"
           onPress={() =>
             navigation.navigate(Routes.Library, {
               filter: 'completed',
-              title: 'Concluídos',
+              title: t('library.filters.completed'),
             })
           }
         />
@@ -95,8 +97,8 @@ export function HistoryScreen() {
           ListEmptyComponent={
             <AppEmptyState
               icon="time-outline"
-              title="Nada no histórico"
-              description="Os áudios que você ouvir aparecerão aqui."
+              title={t('history.empty.title')}
+              description={t('history.empty.description')}
             />
           }
           renderItem={({ item: entry }) => (
@@ -104,7 +106,9 @@ export function HistoryScreen() {
               <AppText variant="overline" color="textMuted" uppercase style={styles.when}>
                 {formatRelativeDate(entry.entry.playedAt)}
                 {entry.entry.positionMs > 0
-                  ? ` · iniciado em ${formatClock(entry.entry.positionMs)}`
+                  ? ` · ${t('history.startedAt', {
+                      position: formatClock(entry.entry.positionMs),
+                    })}`
                   : ''}
               </AppText>
               <LibraryAudioRow item={entry.item} onPress={play} />
@@ -114,19 +118,19 @@ export function HistoryScreen() {
       )}
       <AppDialog
         visible={confirmClear}
-        title="Limpar histórico?"
-        message="O registro de reproduções será apagado. Suas posições salvas continuam, então “Continuar ouvindo” não é afetado."
+        title={t('history.clearDialog.title')}
+        message={t('history.clearDialog.message')}
         onDismiss={() => setConfirmClear(false)}
         actions={[
           {
-            label: 'Limpar',
+            label: t('history.clearDialog.confirm'),
             variant: 'destructive',
             onPress: () => {
               setConfirmClear(false);
               clear.run();
             },
           },
-          { label: 'Cancelar', onPress: () => setConfirmClear(false) },
+          { label: t('common.cancel'), onPress: () => setConfirmClear(false) },
         ]}
       />
     </AppScreen>

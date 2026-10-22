@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
-import { AppSlider, AppText, makeStyles } from '@design-system';
+import { AppSlider, AppText, makeStyles, useTranslation } from '@design-system';
 import { formatClock } from '@core/utils';
 import { usePlayerStore } from '../store/playerStore';
 
@@ -9,6 +9,7 @@ const ACCESSIBILITY_STEP_MS = 15000;
 
 /** Seek bar with elapsed and remaining time; seeking commits on release. */
 export function PlaybackProgressSlider() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { player } = useDependencies();
   const positionMs = usePlayerStore(state => state.positionMs);
@@ -30,7 +31,7 @@ export function PlaybackProgressSlider() {
           setPreview(null);
           player.seekTo(value);
         }}
-        accessibilityLabel="Posição da reprodução"
+        accessibilityLabel={t('player.position')}
         accessibilityStep={ACCESSIBILITY_STEP_MS}
         formatAccessibilityValue={value =>
           `${formatClock(value)} de ${formatClock(durationMs)}`
@@ -40,7 +41,11 @@ export function PlaybackProgressSlider() {
         <AppText variant="mono" color="textSecondary">
           {formatClock(shown)}
         </AppText>
-        <AppText variant="mono" color="textSecondary" accessibilityLabel="Tempo restante">
+        <AppText
+          variant="mono"
+          color="textSecondary"
+          accessibilityLabel={t('player.timeLeft')}
+        >
           -{formatClock(remaining)}
         </AppText>
       </View>

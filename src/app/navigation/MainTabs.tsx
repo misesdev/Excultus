@@ -3,7 +3,8 @@ import {
   createBottomTabNavigator,
   type BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
-import { AppTabBar, type IconName } from '@design-system';
+import type { TranslationKey } from '@core/i18n';
+import { AppTabBar, useTranslation, type IconName } from '@design-system';
 import { CollectionsScreen } from '@features/collections/presentation';
 import { DownloadsScreen } from '@features/downloads/presentation';
 import { HomeScreen } from '@features/home/presentation';
@@ -15,21 +16,21 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 const TAB_META: Record<
   keyof TabParamList,
-  { label: string; icon: IconName; activeIcon: IconName }
+  { label: TranslationKey; icon: IconName; activeIcon: IconName }
 > = {
-  [Routes.HomeTab]: { label: 'Início', icon: 'home-outline', activeIcon: 'home' },
+  [Routes.HomeTab]: { label: 'tabs.home', icon: 'home-outline', activeIcon: 'home' },
   [Routes.CollectionsTab]: {
-    label: 'Coleções',
+    label: 'tabs.collections',
     icon: 'albums-outline',
     activeIcon: 'albums',
   },
   [Routes.DownloadsTab]: {
-    label: 'Downloads',
+    label: 'tabs.downloads',
     icon: 'arrow-down-circle-outline',
     activeIcon: 'arrow-down-circle',
   },
   [Routes.SettingsTab]: {
-    label: 'Ajustes',
+    label: 'tabs.settings',
     icon: 'settings-outline',
     activeIcon: 'settings',
   },
@@ -37,6 +38,7 @@ const TAB_META: Record<
 
 /** Adapts React Navigation's tab bar contract to the design-system tab bar. */
 function TabBar({ state, navigation }: BottomTabBarProps) {
+  const { t } = useTranslation();
   return (
     <AppTabBar
       accessory={
@@ -47,7 +49,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
         const focused = state.index === index;
         return {
           key: route.key,
-          label: meta.label,
+          label: t(meta.label),
           icon: meta.icon,
           activeIcon: meta.activeIcon,
           focused,

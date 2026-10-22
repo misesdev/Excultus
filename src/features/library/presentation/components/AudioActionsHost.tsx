@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Linking } from 'react-native';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
-import { AppDialog, type AppMenuAction } from '@design-system';
+import { AppDialog, type AppMenuAction, useTranslation } from '@design-system';
 import { isDownloadable, type AudioLibraryItem } from '@features/audios';
 import {
   AudioActionsMenu,
@@ -19,6 +19,7 @@ import { TargetPickerSheet, type TargetKind } from './TargetPickerSheet';
  * player). It builds context-aware actions and runs them through use cases.
  */
 export function AudioActionsHost() {
+  const { t } = useTranslation();
   const request = useAudioActionsStore(state => state.request);
   const close = useAudioActionsStore(state => state.close);
   const [picker, setPicker] = useState<{ kind: TargetKind; audioId: string } | null>(
@@ -42,7 +43,7 @@ export function AudioActionsHost() {
   const deleteAudio = useAsyncAction(
     (audioId: string) => audios.deleteFromLibrary(audioId),
     {
-      successMessage: 'Áudio removido da biblioteca',
+      successMessage: t('audioActions.removedFromLibrary'),
     },
   );
 
@@ -62,7 +63,7 @@ export function AudioActionsHost() {
     if (!context.fromPlayer) {
       list.push({
         key: 'play',
-        label: 'Reproduzir',
+        label: t('audioActions.play'),
         icon: 'play',
         onPress: () =>
           playAudio(item, { queueIds: context.queueIds, label: context.queueLabel }),
@@ -72,27 +73,29 @@ export function AudioActionsHost() {
       list.push(
         {
           key: 'play-next',
-          label: 'Tocar em seguida',
+          label: t('audioActions.playNext'),
           icon: 'return-down-forward',
           onPress: () =>
             run
               .run(() => player.playNext([audio.id]))
-              .then(() => feedback.info('Vai tocar em seguida')),
+              .then(() => feedback.info(t('audioActions.playingNext'))),
         },
         {
           key: 'queue',
-          label: 'Adicionar à fila',
+          label: t('audioActions.addToQueue'),
           icon: 'list',
           onPress: () =>
             run
               .run(() => player.addToQueue([audio.id]))
-              .then(() => feedback.info('Adicionado à fila')),
+              .then(() => feedback.info(t('audioActions.addedToQueue'))),
         },
       );
     }
     list.push({
       key: 'favorite',
-      label: item.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+      label: item.isFavorite
+        ? t('audioActions.removeFavorite')
+        : t('audioActions.addFavorite'),
       icon: item.isFavorite ? 'heart-dislike-outline' : 'heart-outline',
       onPress: () => run.run(() => audios.toggleFavorite(audio.id)),
     });
@@ -100,43 +103,43 @@ export function AudioActionsHost() {
     if (status === 'downloading' || status === 'queued') {
       list.push({
         key: 'pause-download',
-        label: 'Pausar download',
+        label: t('audioActions.pauseDownload'),
         icon: 'pause',
         onPress: () => downloads.pause(audio.id),
       });
     } else if (status === 'paused') {
       list.push({
         key: 'resume-download',
-        label: 'Retomar download',
+        label: t('audioActions.resumeDownload'),
         icon: 'play',
         onPress: () => downloads.resume(audio.id),
       });
     } else if (item.offline === 'available') {
       list.push({
         key: 'delete-download',
-        label: 'Remover download',
+        label: t('audioActions.removeDownload'),
         icon: 'cloud-offline-outline',
         onPress: () => run.run(() => downloads.deleteDownloadedFile(audio.id)),
       });
     } else if (item.offline === 'failed') {
       list.push({
         key: 'retry-download',
-        label: 'Tentar baixar de novo',
+        label: t('audioActions.retryDownload'),
         icon: 'refresh',
         onPress: () => downloads.retry(audio.id),
       });
     } else if (downloadable) {
       list.push({
         key: 'download',
-        label: 'Baixar para ouvir offline',
+        label: t('audioActions.download'),
         icon: 'arrow-down-circle-outline',
         onPress: () =>
           run.run(async () => {
             const result = await downloadCommands.downloadAudios([audio.id]);
             feedback.info(
               result.enqueued > 0
-                ? 'Download adicionado à fila'
-                : 'Este áudio não pode ser baixado',
+                ? t('audioActions.downloadQueued')
+                : t('audioActions.cannotDownload'),
             );
           }),
       });
@@ -145,13 +148,13 @@ export function AudioActionsHost() {
     list.push(
       {
         key: 'add-playlist',
-        label: 'Adicionar à playlist',
+        label: t('audioActions.addToPlaylist'),
         icon: 'add-circle-outline',
         onPress: () => setPicker({ kind: 'playlist', audioId: audio.id }),
       },
       {
         key: 'add-collection',
-        label: 'Adicionar à coleção',
+        label: t('audioActions.addToCollection'),
         icon: 'albums-outline',
         onPress: () => setPicker({ kind: 'collection', audioId: audio.id }),
       },
@@ -160,13 +163,13 @@ export function AudioActionsHost() {
       item.progress?.completed
         ? {
             key: 'unplayed',
-            label: 'Marcar como não ouvido',
+            label: t('audioActions.markUnplayed'),
             icon: 'refresh-circle-outline',
             onPress: () => run.run(() => progress.resetProgress(audio.id)),
           }
         : {
             key: 'completed',
-            label: 'Marcar como concluído',
+            label: t('audioActions.markCompleted'),
             icon: 'checkmark-done-outline',
             onPress: () => run.run(() => progress.markCompleted(audio.id)),
           },
@@ -176,7 +179,9 @@ export function AudioActionsHost() {
       list.push({
         key: 'origin',
         label:
-          audio.sourceType === 'youtube' ? 'Abrir no YouTube' : 'Abrir página de origem',
+          audio.sourceType === 'youtube'
+            ? t('audioActions.openYouTube')
+            : t('audioActions.openSource'),
         icon: 'open-outline',
         onPress: () => Linking.openURL(url),
       });
@@ -185,7 +190,7 @@ export function AudioActionsHost() {
       const collectionId = context.collectionId;
       list.push({
         key: 'remove-collection',
-        label: 'Remover desta coleção',
+        label: t('audioActions.removeFromCollection'),
         icon: 'remove-circle-outline',
         onPress: () => run.run(() => collections.removeAudio(collectionId, audio.id)),
       });
@@ -194,7 +199,7 @@ export function AudioActionsHost() {
       const playlistId = context.playlistId;
       list.push({
         key: 'remove-playlist',
-        label: 'Remover desta playlist',
+        label: t('audioActions.removeFromPlaylist'),
         icon: 'remove-circle-outline',
         onPress: () => run.run(() => playlists.removeAudio(playlistId, audio.id)),
       });
@@ -202,14 +207,14 @@ export function AudioActionsHost() {
     if (context.fromPlayer) {
       list.push({
         key: 'close-player',
-        label: 'Encerrar reprodução',
+        label: t('audioActions.stopPlayback'),
         icon: 'stop-circle-outline',
         onPress: () => run.run(() => player.close()),
       });
     }
     list.push({
       key: 'delete',
-      label: 'Excluir da biblioteca',
+      label: t('audioActions.deleteFromLibrary'),
       icon: 'trash-outline',
       destructive: true,
       onPress: () => setToDelete(item),
@@ -227,14 +232,14 @@ export function AudioActionsHost() {
       />
       <AppDialog
         visible={toDelete !== null}
-        title="Excluir da biblioteca?"
-        message={`"${
-          toDelete?.audio.title ?? ''
-        }" será removido de todas as coleções e playlists, junto com o arquivo baixado, o progresso e os marcadores.`}
+        title={t('audioActions.deleteDialog.title')}
+        message={t('audioActions.deleteDialog.message', {
+          title: toDelete?.audio.title ?? '',
+        })}
         onDismiss={() => setToDelete(null)}
         actions={[
           {
-            label: 'Excluir',
+            label: t('common.delete'),
             variant: 'destructive',
             testID: 'confirm-delete-audio',
             onPress: () => {
@@ -244,7 +249,7 @@ export function AudioActionsHost() {
               setToDelete(null);
             },
           },
-          { label: 'Cancelar', onPress: () => setToDelete(null) },
+          { label: t('common.cancel'), onPress: () => setToDelete(null) },
         ]}
       />
     </>

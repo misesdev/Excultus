@@ -3,6 +3,10 @@ export const SKIP_INTERVALS_SEC = [10, 15, 30] as const;
 export const COMPLETION_THRESHOLDS = [0.9, 0.95, 0.98, 1] as const;
 export const MAX_CONCURRENT_DOWNLOADS_OPTIONS = [1, 2, 3, 4, 5] as const;
 export const AUTO_RETRY_OPTIONS = [0, 1, 3, 5] as const;
+/** `system` follows the device language (English when it isn't supported). */
+export const LANGUAGE_OPTIONS = ['system', 'en', 'pt'] as const;
+
+export type LanguagePreference = (typeof LANGUAGE_OPTIONS)[number];
 
 export type SkipIntervalSec = (typeof SKIP_INTERVALS_SEC)[number];
 
@@ -27,10 +31,15 @@ export interface AppearanceSettings {
   theme: 'dark';
 }
 
+export interface GeneralSettings {
+  language: LanguagePreference;
+}
+
 export interface AppSettings {
   playback: PlaybackSettings;
   downloads: DownloadSettings;
   appearance: AppearanceSettings;
+  general: GeneralSettings;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -44,6 +53,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   downloads: { maxConcurrent: 2, wifiOnly: false, autoRetryAttempts: 3 },
   appearance: { theme: 'dark' },
+  general: { language: 'system' },
 };
 
 export type SettingsPatch = {
@@ -70,6 +80,7 @@ export function normalizeSettings(raw: unknown): AppSettings {
   >;
   const playback = source.playback ?? {};
   const downloads = source.downloads ?? {};
+  const general = source.general ?? {};
   const defaults = DEFAULT_SETTINGS;
 
   return {
@@ -111,6 +122,9 @@ export function normalizeSettings(raw: unknown): AppSettings {
       ),
     },
     appearance: { theme: 'dark' },
+    general: {
+      language: pick(LANGUAGE_OPTIONS, general.language, defaults.general.language),
+    },
   };
 }
 
@@ -122,5 +136,6 @@ export function applySettingsPatch(
     playback: { ...current.playback, ...patch.playback },
     downloads: { ...current.downloads, ...patch.downloads },
     appearance: { ...current.appearance, ...patch.appearance },
+    general: { ...current.general, ...patch.general },
   });
 }

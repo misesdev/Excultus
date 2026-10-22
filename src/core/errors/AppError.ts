@@ -27,7 +27,7 @@ export class AppError extends Error {
   readonly code: ErrorCode;
   override readonly cause?: unknown;
   readonly details?: Readonly<Record<string, string | number | boolean | undefined>>;
-  /** pt-BR text shown instead of the generic message for `code`. */
+  /** Translated text shown instead of the generic message for `code`. */
   readonly userMessage?: string;
 
   constructor(

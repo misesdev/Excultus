@@ -12,6 +12,7 @@ import type {
   SourceMetadata,
 } from '@features/imports';
 import type { HeadResult, HttpClient } from '../../http/HttpClient';
+import { t } from '@core/i18n';
 
 function lastSegment(url: string): string {
   const parsed = parseHttpsUrl(url);
@@ -25,7 +26,9 @@ function stripFragment(url: string): string {
 /** Any HTTPS link pointing straight to a supported audio file. */
 export class DirectAudioProvider implements AudioSourceProvider {
   readonly id = 'direct';
-  readonly label = 'Link direto de áudio';
+  get label(): string {
+    return t('imports.sources.directLink');
+  }
 
   constructor(private readonly http: HttpClient, private readonly logger: Logger) {}
 

@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { AppDialog, AppIcon, AppListItem, makeStyles } from '@design-system';
+import type { TranslationKey } from '@core/i18n';
+import {
+  AppDialog,
+  AppIcon,
+  AppListItem,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
 import type { CollectionDeletionMode } from '../../index';
 
 export interface DeleteCollectionDialogProps {
@@ -13,19 +20,18 @@ export interface DeleteCollectionDialogProps {
 
 const OPTIONS: Array<{
   mode: CollectionDeletionMode;
-  title: string;
-  description: string;
+  title: TranslationKey;
+  description: TranslationKey;
 }> = [
   {
     mode: 'keep-files',
-    title: 'Manter arquivos baixados',
-    description: 'Os áudios continuam na biblioteca e disponíveis offline.',
+    title: 'collections.delete.keepFiles',
+    description: 'collections.delete.keepFilesDescription',
   },
   {
     mode: 'delete-exclusive-downloads',
-    title: 'Liberar espaço',
-    description:
-      'Apaga downloads usados só por esta coleção. Arquivos compartilhados são mantidos.',
+    title: 'collections.delete.freeSpace',
+    description: 'collections.delete.freeSpaceDescription',
   },
 ];
 
@@ -37,32 +43,33 @@ export function DeleteCollectionDialog({
   onConfirm,
   onDismiss,
 }: DeleteCollectionDialogProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const [mode, setMode] = useState<CollectionDeletionMode>('keep-files');
   return (
     <AppDialog
       visible={visible}
-      title={`Excluir "${name}"?`}
-      message="Os áudios não serão apagados da biblioteca."
+      title={t('collections.delete.title', { name })}
+      message={t('collections.delete.message')}
       onDismiss={onDismiss}
       testID="delete-collection-dialog"
       actions={[
         {
-          label: 'Excluir coleção',
+          label: t('collections.delete.confirm'),
           variant: 'destructive',
           loading: deleting,
           onPress: () => onConfirm(mode),
           testID: 'confirm-delete-collection',
         },
-        { label: 'Cancelar', onPress: onDismiss },
+        { label: t('common.cancel'), onPress: onDismiss },
       ]}
     >
       <View style={styles.options} accessibilityRole="radiogroup">
         {OPTIONS.map(option => (
           <AppListItem
             key={option.mode}
-            title={option.title}
-            subtitle={option.description}
+            title={t(option.title)}
+            subtitle={t(option.description)}
             selected={mode === option.mode}
             onPress={() => setMode(option.mode)}
             style={styles.option}

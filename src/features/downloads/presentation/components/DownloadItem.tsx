@@ -1,7 +1,13 @@
 import React, { memo } from 'react';
 import { View } from 'react-native';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
-import { AppArtwork, AppIconButton, AppText, makeStyles } from '@design-system';
+import {
+  AppArtwork,
+  AppIconButton,
+  AppText,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
 import { getUserMessageForCode, type ErrorCode } from '@core/errors';
 import {
   canCancel,
@@ -30,6 +36,7 @@ export interface DownloadItemProps {
 }
 
 function DownloadItemComponent({ entry, onDeleteFile }: DownloadItemProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { downloads } = useDependencies();
   const live = useActiveDownload(entry.download.audioId);
@@ -60,7 +67,7 @@ function DownloadItemComponent({ entry, onDeleteFile }: DownloadItemProps) {
           <AppIconButton
             icon="pause"
             size="sm"
-            accessibilityLabel="Pausar download"
+            accessibilityLabel={t('audioActions.pauseDownload')}
             onPress={() => downloads.pause(audioId)}
           />
         )}
@@ -68,7 +75,7 @@ function DownloadItemComponent({ entry, onDeleteFile }: DownloadItemProps) {
           <AppIconButton
             icon="play"
             size="sm"
-            accessibilityLabel="Retomar download"
+            accessibilityLabel={t('audioActions.resumeDownload')}
             onPress={() => downloads.resume(audioId)}
           />
         )}
@@ -76,7 +83,7 @@ function DownloadItemComponent({ entry, onDeleteFile }: DownloadItemProps) {
           <AppIconButton
             icon="refresh"
             size="sm"
-            accessibilityLabel="Tentar novamente"
+            accessibilityLabel={t('common.retry')}
             onPress={() => downloads.retry(audioId)}
           />
         )}
@@ -85,7 +92,7 @@ function DownloadItemComponent({ entry, onDeleteFile }: DownloadItemProps) {
             icon="close"
             size="sm"
             color="textSecondary"
-            accessibilityLabel="Cancelar download"
+            accessibilityLabel={t('downloads.cancel')}
             onPress={() => downloads.cancel(audioId)}
           />
         )}
@@ -94,7 +101,7 @@ function DownloadItemComponent({ entry, onDeleteFile }: DownloadItemProps) {
             icon="trash-outline"
             size="sm"
             color="textSecondary"
-            accessibilityLabel="Excluir arquivo baixado"
+            accessibilityLabel={t('downloads.deleteFile')}
             onPress={() => onDeleteFile(audioId)}
             testID={`download-delete-${audioId}`}
           />

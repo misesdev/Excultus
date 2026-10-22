@@ -17,7 +17,7 @@ import { SAFE_AREA_METRICS } from '@test/support/renderWithProviders';
 
 jest.setTimeout(30000);
 
-function testAdapters(): PlatformAdapters {
+function testAdapters(deviceLocale = 'pt-BR'): PlatformAdapters {
   const storage = new InMemoryFileStorage();
   return {
     driver: new NodeSqliteDriver(),
@@ -27,6 +27,7 @@ function testAdapters(): PlatformAdapters {
     downloader: new FakeFileDownloader(storage),
     engine: new FakePlaybackEngine(),
     youtube: new FakeYouTubeExtractor(),
+    deviceLocale: () => deviceLocale,
     http: {
       getJson: async () => {
         throw new Error('offline in tests');
@@ -37,10 +38,10 @@ function testAdapters(): PlatformAdapters {
   };
 }
 
-async function renderApp() {
+async function renderApp(deviceLocale?: string) {
   await render(
     <SafeAreaProvider initialMetrics={SAFE_AREA_METRICS}>
-      <App adaptersFactory={testAdapters} />
+      <App adaptersFactory={() => testAdapters(deviceLocale)} />
     </SafeAreaProvider>,
   );
   await waitFor(() => expect(screen.getByTestId('home-screen')).toBeOnTheScreen());

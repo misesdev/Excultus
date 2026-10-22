@@ -8,8 +8,9 @@ import {
   AppText,
   makeStyles,
   useTheme,
+  useTranslation,
 } from '@design-system';
-import { formatHumanDuration, formatPercent, pluralize } from '@core/utils';
+import { formatHumanDuration, formatPercent } from '@core/utils';
 import { collectionProgress, type CollectionSummary } from '../../index';
 
 export interface CollectionHeaderProps {
@@ -30,6 +31,7 @@ export function CollectionHeader({
   onMore,
   downloading,
 }: CollectionHeaderProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const { collection, audioCount, totalDurationMs, offlineCount } = summary;
@@ -62,16 +64,19 @@ export function CollectionHeader({
         testID="collection-stats"
       >
         {[
-          pluralize(audioCount, 'áudio', 'áudios'),
+          t('common.audioCount', { count: audioCount }),
           totalDurationMs > 0 ? formatHumanDuration(totalDurationMs) : null,
-          `${offlineCount} offline`,
+          t('collections.offlineCount', { count: offlineCount }),
         ]
           .filter(Boolean)
           .join(' · ')}
       </AppText>
       {progress > 0 && (
         <View style={styles.progress}>
-          <AppProgressBar progress={progress} accessibilityLabel="Progresso geral" />
+          <AppProgressBar
+            progress={progress}
+            accessibilityLabel={t('collections.overallProgress')}
+          />
           <AppText variant="caption" color="textSecondary">
             {formatPercent(progress)} ouvido
           </AppText>
@@ -81,7 +86,7 @@ export function CollectionHeader({
         <AppIconButton
           icon="arrow-down-circle-outline"
           variant="tonal"
-          accessibilityLabel="Baixar todos"
+          accessibilityLabel={t('collections.downloadAll')}
           onPress={onDownloadAll}
           disabled={empty || offlineCount === audioCount}
           loading={downloading}
@@ -90,12 +95,12 @@ export function CollectionHeader({
         <AppIconButton
           icon="shuffle"
           variant="tonal"
-          accessibilityLabel="Reproduzir em ordem aleatória"
+          accessibilityLabel={t('collections.shuffle')}
           onPress={onShuffle}
           disabled={empty}
         />
         <AppButton
-          label="Reproduzir"
+          label={t('audioActions.play')}
           icon="play"
           onPress={onPlay}
           disabled={empty}
@@ -104,7 +109,7 @@ export function CollectionHeader({
         <AppIconButton
           icon="ellipsis-horizontal"
           variant="tonal"
-          accessibilityLabel="Mais opções da coleção"
+          accessibilityLabel={t('collections.moreOptions')}
           onPress={onMore}
           testID="collection-more"
         />

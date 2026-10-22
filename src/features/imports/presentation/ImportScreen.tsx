@@ -16,9 +16,10 @@ import {
   AppText,
   makeStyles,
   useTheme,
+  useTranslation,
 } from '@design-system';
 import { getUserMessage } from '@core/errors';
-import { formatBytes, pluralize } from '@core/utils';
+import { formatBytes } from '@core/utils';
 import { feedback } from '@shared/feedback/feedbackStore';
 import { useQuery } from '@shared/hooks/useQuery';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
@@ -30,6 +31,7 @@ import { ImportUrlForm } from './components/ImportUrlForm';
 import { useImportViewModel } from './view-models/useImportViewModel';
 
 export function ImportScreen() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -53,16 +55,18 @@ export function ImportScreen() {
 
   const targetLabel = (() => {
     if (vm.target.kind === 'new') {
-      return `Nova coleção: ${vm.target.name}`;
+      return t('imports.target.new', { name: vm.target.name });
     }
     if (vm.target.kind === 'existing') {
       const targetId = vm.target.collectionId;
       const found = collectionsQuery.data?.find(
         summary => summary.collection.id === targetId,
       );
-      return found ? `Coleção: ${found.collection.name}` : 'Coleção existente';
+      return found
+        ? t('imports.target.existing', { name: found.collection.name })
+        : t('imports.target.existingUnknown');
     }
-    return 'Sem coleção (apenas biblioteca)';
+    return t('imports.target.none');
   })();
 
   const onConfirm = async () => {
@@ -72,9 +76,9 @@ export function ImportScreen() {
         return;
       }
       feedback.success(
-        `${pluralize(result.audioIds.length, 'áudio importado', 'áudios importados')}` +
+        t('imports.imported', { count: result.audioIds.length }) +
           (result.enqueuedDownloads > 0
-            ? ` · ${result.enqueuedDownloads} na fila de download`
+            ? ` · ${t('imports.queuedDownloads', { count: result.enqueuedDownloads })}`
             : ''),
       );
       if (result.collectionId && !initialCollectionId) {
@@ -94,7 +98,7 @@ export function ImportScreen() {
   return (
     <AppScreen keyboardAware testID="import-screen">
       <AppHeader
-        title="Importar"
+        title={t('imports.title')}
         onBack={
           phase.kind === 'preview' || phase.kind === 'error'
             ? vm.reset
@@ -109,18 +113,17 @@ export function ImportScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <AppText variant="body" color="textSecondary">
-            Cole o link de um item do Internet Archive, um link direto para um arquivo de
-            áudio ou um vídeo do YouTube (salvo apenas como link).
+            {t('imports.intro')}
           </AppText>
           <ImportUrlForm onSubmit={vm.fetchUrl} />
           <AppText variant="caption" color="textMuted">
-            Fontes suportadas: {vm.supportedSources.join(', ')}
+            {t('imports.supportedSources', { sources: vm.supportedSources.join(', ') })}
           </AppText>
           <AppDivider />
           <AppCard variant="outlined" padded={false}>
             <AppListItem
-              title="Arquivos do dispositivo"
-              subtitle="MP3, M4A, AAC, OGG, OPUS, FLAC ou WAV"
+              title={t('imports.sources.deviceFiles')}
+              subtitle={t('imports.deviceFormats')}
               leadingIcon="phone-portrait-outline"
               showChevron
               onPress={vm.pickLocalFiles}
@@ -161,7 +164,7 @@ export function ImportScreen() {
                 align="center"
                 style={styles.emptyText}
               >
-                Nenhum arquivo de áudio suportado foi encontrado neste item.
+                {t('imports.noSupportedFiles')}
               </AppText>
             }
           />
@@ -179,17 +182,17 @@ export function ImportScreen() {
             {vm.hasDownloadable && (
               <View style={styles.switchRow}>
                 <View style={styles.switchText}>
-                  <AppText variant="bodyStrong">Baixar para ouvir offline</AppText>
+                  <AppText variant="bodyStrong">{t('audioActions.download')}</AppText>
                   <AppText variant="caption" color="textSecondary">
                     {vm.freeBytes !== undefined
-                      ? `${formatBytes(vm.freeBytes)} livres no dispositivo`
+                      ? t('imports.freeSpace', { size: formatBytes(vm.freeBytes) })
                       : ' '}
                   </AppText>
                 </View>
                 <AppSwitch
                   value={vm.downloadNow}
                   onValueChange={vm.setDownloadNow}
-                  accessibilityLabel="Baixar para ouvir offline"
+                  accessibilityLabel={t('audioActions.download')}
                   testID="import-download-switch"
                 />
               </View>
@@ -198,16 +201,15 @@ export function ImportScreen() {
               <View style={styles.warning} accessibilityLiveRegion="polite">
                 <AppIcon name="warning" size="sm" color="warning" />
                 <AppText variant="caption" color="warning" style={styles.switchText}>
-                  Espaço insuficiente para tudo. Os downloads que não couberem vão falhar
-                  com aviso.
+                  {t('imports.insufficientSpace')}
                 </AppText>
               </View>
             )}
             <AppButton
               label={
                 vm.summary.count > 0
-                  ? `Importar ${pluralize(vm.summary.count, 'item', 'itens')}`
-                  : 'Selecione itens para importar'
+                  ? t('imports.importCount', { count: vm.summary.count })
+                  : t('imports.selectItems')
               }
               onPress={onConfirm}
               disabled={vm.summary.count === 0}

@@ -1,6 +1,7 @@
 import { TrackPlayerEngine } from '@infrastructure/audio/TrackPlayerEngine';
 import { DATABASE_NAME } from '@infrastructure/database/openDatabase';
 import { OpSqliteDriver } from '@infrastructure/database/OpSqliteDriver';
+import { getDeviceLocale } from '@infrastructure/i18n/deviceLocale';
 import { NativeFileDownloader } from '@infrastructure/downloads/NativeFileDownloader';
 import { NativeMp4Remuxer } from '@infrastructure/downloads/NativeMp4Remuxer';
 import { NativeYouTubeExtractor } from '@infrastructure/external-sources/youtube/NativeYouTubeExtractor';
@@ -23,6 +24,7 @@ export function createProductionAdapters(): PlatformAdapters {
     engine: new TrackPlayerEngine(logger),
     http: new FetchHttpClient(),
     youtube: new NativeYouTubeExtractor(),
+    deviceLocale: getDeviceLocale,
     logger,
   };
 }

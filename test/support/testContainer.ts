@@ -35,7 +35,12 @@ export interface TestApp {
  * native/platform ports are replaced by deterministic fakes.
  */
 export async function createTestApp(
-  options: { dbPath?: string; fileProcessor?: DownloadedFileProcessor } = {},
+  options: {
+    dbPath?: string;
+    fileProcessor?: DownloadedFileProcessor;
+    /** Device language; the existing suites are written against pt-BR. */
+    deviceLocale?: string;
+  } = {},
 ): Promise<TestApp> {
   const storage = new InMemoryFileStorage();
   const downloader = new FakeFileDownloader(storage);
@@ -67,6 +72,7 @@ export async function createTestApp(
     engine,
     http,
     youtube,
+    deviceLocale: () => options.deviceLocale ?? 'pt-BR',
     logger: silentLogger,
     clock,
     generateId: sequentialIds('id'),

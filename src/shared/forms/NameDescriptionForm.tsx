@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AppButton, AppTextInput, makeStyles } from '@design-system';
+import { AppButton, AppTextInput, makeStyles, useTranslation } from '@design-system';
 import {
   nameDescriptionSchema,
   type NameDescriptionValues,
@@ -30,6 +30,7 @@ export function NameDescriptionForm({
   onSubmit,
   testIDPrefix,
 }: NameDescriptionFormProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { control, handleSubmit, reset, formState } = useForm<NameDescriptionValues>({
     resolver: zodResolver(nameDescriptionSchema(limits)),
@@ -69,8 +70,8 @@ export function NameDescriptionForm({
         name="description"
         render={({ field }) => (
           <AppTextInput
-            label="Descrição (opcional)"
-            placeholder="Sobre o que é?"
+            label={t('forms.descriptionLabel')}
+            placeholder={t('forms.descriptionPlaceholder')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}

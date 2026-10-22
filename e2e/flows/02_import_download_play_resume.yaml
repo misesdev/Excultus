@@ -38,7 +38,7 @@ tags:
       id: "collection-detail"
     timeout: 15000
 - extendedWaitUntil:
-    visible: "1 áudio · 42 min · 1 offline"
+    visible: "1 track · 42 min · 1 offline"
     timeout: 180000
 
 # 5-6. Play, jump forward, pause and favorite.
@@ -59,14 +59,14 @@ tags:
 - tapOn:
     id: "player-favorite"
 - assertVisible:
-    text: "Remover dos favoritos"
+    text: "Remove from favorites"
     optional: true
 
 # 7-8. Close and reopen: the session and position are restored.
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: "Continuar ouvindo"
+    visible: "Continue listening"
     timeout: 20000
 - tapOn:
     id: "mini-player"
@@ -87,7 +87,7 @@ tags:
 - tapOn:
     id: "confirm-delete-download"
 - extendedWaitUntil:
-    visible: "Nenhum download"
+    visible: "No downloads"
     timeout: 10000
 - tapOn:
     id: "tab-HomeTab"

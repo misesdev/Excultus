@@ -61,3 +61,7 @@ jest.mock('../../specs/NativeExcultusYouTube', () => ({
     }),
   },
 }));
+
+// Existing suites assert pt-BR copy; English is covered by the i18n tests
+// (setup files run once per test file, before the module registry is used).
+require('../../src/core/i18n').setLocale('pt');

@@ -8,8 +8,8 @@ import {
   AppListItem,
   AppTextInput,
   makeStyles,
+  useTranslation,
 } from '@design-system';
-import { pluralize } from '@core/utils';
 import { COLLECTION_NAME_MAX_LENGTH } from '@features/collections';
 import { useQuery } from '@shared/hooks/useQuery';
 import type { ImportTarget } from '../../index';
@@ -30,6 +30,7 @@ export function ImportTargetSheet({
   onChange,
   onClose,
 }: ImportTargetSheetProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { collections } = useDependencies();
   const [name, setName] = useState(value.kind === 'new' ? value.name : suggestedName);
@@ -50,13 +51,13 @@ export function ImportTargetSheet({
     <AppBottomSheet
       visible={visible}
       onClose={onClose}
-      title="Coleção de destino"
+      title={t('imports.target.title')}
       testID="import-target-sheet"
     >
       <View style={styles.newCollection}>
         <View style={styles.input}>
           <AppTextInput
-            label="Nova coleção"
+            label={t('targetPicker.newCollection')}
             value={name}
             onChangeText={setName}
             maxLength={COLLECTION_NAME_MAX_LENGTH}
@@ -64,7 +65,7 @@ export function ImportTargetSheet({
           />
         </View>
         <AppButton
-          label="Usar"
+          label={t('imports.target.use')}
           size="sm"
           disabled={name.trim().length === 0}
           onPress={() => select({ kind: 'new', name: name.trim() })}
@@ -78,7 +79,7 @@ export function ImportTargetSheet({
             <AppListItem
               key={summary.collection.id}
               title={summary.collection.name}
-              subtitle={pluralize(summary.audioCount, 'áudio', 'áudios')}
+              subtitle={t('common.audioCount', { count: summary.audioCount })}
               leadingIcon="albums-outline"
               selected={selected}
               trailing={selected ? <AppIcon name="checkmark" color="primary" /> : null}
@@ -89,8 +90,8 @@ export function ImportTargetSheet({
           );
         })}
         <AppListItem
-          title="Não adicionar a uma coleção"
-          subtitle="Os áudios ficam disponíveis na biblioteca"
+          title={t('imports.target.noneTitle')}
+          subtitle={t('imports.target.noneSubtitle')}
           leadingIcon="library-outline"
           selected={value.kind === 'none'}
           onPress={() => select({ kind: 'none' })}

@@ -1,7 +1,12 @@
 import React from 'react';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
 import { Routes, useAppNavigation, useAppRoute } from '@app/navigation/routes';
-import { AppHeader, AppLoadingIndicator, AppScreen } from '@design-system';
+import {
+  AppHeader,
+  AppLoadingIndicator,
+  AppScreen,
+  useTranslation,
+} from '@design-system';
 import { NameDescriptionForm } from '@shared/forms/NameDescriptionForm';
 import type { NameDescriptionValues } from '@shared/forms/nameDescriptionSchema';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
@@ -18,6 +23,7 @@ const LIMITS = {
 
 /** Create or edit a collection. */
 export function CollectionFormScreen() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const collectionId = useAppRoute<typeof Routes.CollectionForm>().params?.collectionId;
   const { collections } = useDependencies();
@@ -37,13 +43,19 @@ export function CollectionFormScreen() {
         navigation.replace(Routes.CollectionDetail, { collectionId: created.id });
       }
     },
-    { successMessage: editing ? 'Coleção atualizada' : 'Coleção criada' },
+    {
+      successMessage: editing
+        ? t('collections.form.updated')
+        : t('collections.form.created'),
+    },
   );
 
   return (
     <AppScreen keyboardAware scrollable safeTop={false}>
       <AppHeader
-        title={editing ? 'Editar coleção' : 'Nova coleção'}
+        title={
+          editing ? t('collections.form.editTitle') : t('targetPicker.newCollection')
+        }
         onBack={navigation.goBack}
         backIcon="close"
       />
@@ -53,9 +65,9 @@ export function CollectionFormScreen() {
         <NameDescriptionForm
           testIDPrefix="collection-form"
           limits={LIMITS}
-          nameLabel="Nome"
-          namePlaceholder="Ex.: Curso de Filosofia"
-          submitLabel={editing ? 'Salvar' : 'Criar coleção'}
+          nameLabel={t('forms.nameLabel')}
+          namePlaceholder={t('collections.form.namePlaceholder')}
+          submitLabel={editing ? t('common.save') : t('home.empty.createCollection')}
           submitting={save.running}
           initialValues={
             existing.data

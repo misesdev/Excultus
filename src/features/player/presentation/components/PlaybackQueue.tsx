@@ -7,6 +7,7 @@ import {
   AppListSkeleton,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
 import type { AudioLibraryItem } from '@features/audios';
 import { AudioListItem } from '@features/audios/presentation';
@@ -22,6 +23,7 @@ export function PlaybackQueue({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { player, audios } = useDependencies();
   const queue = usePlayerStore(state => state.queue);
@@ -44,7 +46,9 @@ export function PlaybackQueue({
                 icon="remove-circle-outline"
                 size="sm"
                 color="textSecondary"
-                accessibilityLabel={`Remover ${item.audio.title} da fila`}
+                accessibilityLabel={t('player.removeFromQueue', {
+                  title: item.audio.title,
+                })}
                 onPress={() => player.removeFromQueue(item.audio.id)}
               />
             )
@@ -52,20 +56,20 @@ export function PlaybackQueue({
         />
       );
     },
-    [player, queue.position, status],
+    [player, queue.position, status, t],
   );
 
   return (
     <AppBottomSheet
       visible={visible}
       onClose={onClose}
-      title="Fila de reprodução"
+      title={t('player.queue')}
       testID="queue-sheet"
     >
       <View style={styles.summary}>
         <AppText variant="caption" color="textSecondary">
-          {queue.shuffled ? 'Ordem aleatória · ' : ''}
-          {ids.length} {ids.length === 1 ? 'item' : 'itens'}
+          {queue.shuffled ? `${t('player.shuffled')} · ` : ''}
+          {t('player.itemCount', { count: ids.length })}
         </AppText>
       </View>
       {loading && !data ? (

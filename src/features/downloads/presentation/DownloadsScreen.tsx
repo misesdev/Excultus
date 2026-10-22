@@ -15,8 +15,10 @@ import {
   AppSectionHeader,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
-import { formatBytes, formatPercent, pluralize } from '@core/utils';
+import type { TranslationKey } from '@core/i18n';
+import { formatBytes, formatPercent } from '@core/utils';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
 import { useQuery } from '@shared/hooks/useQuery';
 import { listStyles } from '@shared/styles/listStyles';
@@ -25,6 +27,7 @@ import { DownloadItem } from './components/DownloadItem';
 import { useDownloadsStore } from './downloadsStore';
 
 function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: number }) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { downloads } = useDependencies();
   const aggregate = useDownloadsStore(state => state.aggregate);
@@ -47,13 +50,13 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
       <View style={styles.summaryRow}>
         <View style={styles.summaryCell}>
           <AppText variant="overline" color="textMuted" uppercase>
-            Usado
+            {t('downloads.used')}
           </AppText>
           <AppText variant="heading">{formatBytes(usedBytes)}</AppText>
         </View>
         <View style={styles.summaryCell}>
           <AppText variant="overline" color="textMuted" uppercase>
-            Livre
+            {t('downloads.free')}
           </AppText>
           <AppText variant="heading">{formatBytes(freeBytes)}</AppText>
         </View>
@@ -61,13 +64,13 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
       {aggregate.activeCount > 0 && (
         <View style={styles.aggregate}>
           <AppText variant="caption" color="textSecondary">
-            {pluralize(aggregate.activeCount, 'download ativo', 'downloads ativos')}
+            {t('downloads.active', { count: aggregate.activeCount })}
             {aggregate.totalBytes > 0 ? ` · ${formatPercent(aggregate.ratio)}` : ''}
-            {waiting ? ' · aguardando conexão permitida' : ''}
+            {waiting ? ` · ${t('downloads.waitingForNetwork')}` : ''}
           </AppText>
           <AppProgressBar
             progress={aggregate.ratio}
-            accessibilityLabel="Progresso total dos downloads"
+            accessibilityLabel={t('downloads.totalProgress')}
           />
         </View>
       )}
@@ -75,7 +78,7 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
         <View style={styles.bulkActions}>
           {hasRunning && (
             <AppButton
-              label="Pausar tudo"
+              label={t('downloads.pauseAll')}
               size="sm"
               variant="secondary"
               icon="pause"
@@ -84,7 +87,7 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
           )}
           {hasPaused && (
             <AppButton
-              label="Retomar tudo"
+              label={t('downloads.resumeAll')}
               size="sm"
               variant="secondary"
               icon="play"
@@ -93,7 +96,7 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
           )}
           {hasFailed && (
             <AppButton
-              label="Tentar falhas"
+              label={t('downloads.retryFailed')}
               size="sm"
               variant="secondary"
               icon="refresh"
@@ -107,6 +110,7 @@ function SummaryCard({ usedBytes, freeBytes }: { usedBytes: number; freeBytes: n
 }
 
 export function DownloadsScreen() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const { storage, downloads, audios } = useDependencies();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -121,29 +125,29 @@ export function DownloadsScreen() {
   const deleteFile = useAsyncAction(
     (audioId: string) => downloads.deleteDownloadedFile(audioId),
     {
-      successMessage: 'Arquivo removido. O áudio continua na biblioteca.',
+      successMessage: t('downloads.fileDeleted'),
     },
   );
   const removeFromLibrary = useAsyncAction(
     (audioId: string) => audios.deleteFromLibrary(audioId),
-    { successMessage: 'Áudio removido da biblioteca, das playlists e das coleções.' },
+    { successMessage: t('downloads.removedFromLibrary') },
   );
 
   const sections = useMemo(() => {
     const entries = data?.entries ?? [];
-    const groups: Array<{ title: string; data: DownloadListEntry[] }> = [
+    const groups: Array<{ title: TranslationKey; data: DownloadListEntry[] }> = [
       {
-        title: 'Em andamento',
+        title: 'library.filters.inProgress',
         data: entries.filter(entry =>
           ['queued', 'downloading', 'paused'].includes(entry.download.status),
         ),
       },
       {
-        title: 'Com falha',
+        title: 'downloads.failed',
         data: entries.filter(entry => entry.download.status === 'failed'),
       },
       {
-        title: 'Baixados',
+        title: 'library.filters.downloaded',
         data: entries.filter(entry => entry.download.status === 'completed'),
       },
     ];
@@ -152,7 +156,7 @@ export function DownloadsScreen() {
 
   return (
     <AppScreen testID="downloads-screen">
-      <AppHeader title="Downloads" variant="large" />
+      <AppHeader title={t('tabs.downloads')} variant="large" />
       {loading && !data ? (
         <AppListSkeleton />
       ) : error && !data ? (
@@ -175,8 +179,8 @@ export function DownloadsScreen() {
           }
           renderSectionHeader={({ section }) => (
             <AppSectionHeader
-              title={section.title}
-              subtitle={pluralize(section.data.length, 'item', 'itens')}
+              title={t(section.title)}
+              subtitle={t('player.itemCount', { count: section.data.length })}
             />
           )}
           renderItem={({ item }) => (
@@ -185,9 +189,9 @@ export function DownloadsScreen() {
           ListEmptyComponent={
             <AppEmptyState
               icon="cloud-download-outline"
-              title="Nenhum download"
-              description="Importe conteúdos e baixe-os para ouvir sem internet."
-              actionLabel="Importar conteúdo"
+              title={t('downloads.empty.title')}
+              description={t('downloads.empty.description')}
+              actionLabel={t('home.importContent')}
               onAction={() => navigation.navigate(Routes.Import)}
             />
           }
@@ -195,12 +199,12 @@ export function DownloadsScreen() {
       )}
       <AppDialog
         visible={confirmDelete !== null}
-        title="Excluir download?"
-        message="Apagar só o arquivo mantém o áudio na biblioteca, nas playlists e nas coleções, com progresso e marcadores, para baixar de novo depois. Remover da biblioteca apaga tudo isso."
+        title={t('downloads.deleteDialog.title')}
+        message={t('downloads.deleteDialog.message')}
         onDismiss={() => setConfirmDelete(null)}
         actions={[
           {
-            label: 'Remover da biblioteca',
+            label: t('downloads.deleteDialog.removeFromLibrary'),
             variant: 'destructive',
             testID: 'confirm-remove-from-library',
             onPress: () => {
@@ -211,7 +215,7 @@ export function DownloadsScreen() {
             },
           },
           {
-            label: 'Apagar só o arquivo',
+            label: t('downloads.deleteDialog.deleteFileOnly'),
             variant: 'secondary',
             testID: 'confirm-delete-download',
             onPress: () => {
@@ -221,7 +225,7 @@ export function DownloadsScreen() {
               setConfirmDelete(null);
             },
           },
-          { label: 'Cancelar', onPress: () => setConfirmDelete(null) },
+          { label: t('common.cancel'), onPress: () => setConfirmDelete(null) },
         ]}
       />
     </AppScreen>

@@ -9,9 +9,9 @@ import {
   AppLoadingIndicator,
   AppTextInput,
   makeStyles,
+  useTranslation,
 } from '@design-system';
 import { COLLECTION_NAME_MAX_LENGTH } from '@features/collections';
-import { pluralize } from '@core/utils';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
 import { useQuery } from '@shared/hooks/useQuery';
 
@@ -31,6 +31,7 @@ interface Target {
 
 /** Toggles membership of an audio in collections or playlists (a track can be in many). */
 export function TargetPickerSheet({ kind, audioId, onClose }: TargetPickerSheetProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { collections, playlists } = useDependencies();
   const [newName, setNewName] = useState('');
@@ -101,10 +102,13 @@ export function TargetPickerSheet({ kind, audioId, onClose }: TargetPickerSheetP
       }
       setNewName('');
     },
-    { successMessage: 'Adicionado' },
+    { successMessage: t('targetPicker.added') },
   );
 
-  const title = kind === 'collection' ? 'Adicionar à coleção' : 'Adicionar à playlist';
+  const title =
+    kind === 'collection'
+      ? t('audioActions.addToCollection')
+      : t('audioActions.addToPlaylist');
   return (
     <AppBottomSheet
       visible={visible}
@@ -115,7 +119,11 @@ export function TargetPickerSheet({ kind, audioId, onClose }: TargetPickerSheetP
       <View style={styles.create}>
         <View style={styles.input}>
           <AppTextInput
-            placeholder={kind === 'collection' ? 'Nova coleção' : 'Nova playlist'}
+            placeholder={
+              kind === 'collection'
+                ? t('targetPicker.newCollection')
+                : t('targetPicker.newPlaylist')
+            }
             value={newName}
             onChangeText={setNewName}
             maxLength={COLLECTION_NAME_MAX_LENGTH}
@@ -124,7 +132,7 @@ export function TargetPickerSheet({ kind, audioId, onClose }: TargetPickerSheetP
           />
         </View>
         <AppButton
-          label="Criar"
+          label={t('common.create')}
           size="sm"
           onPress={() => create.run(newName)}
           disabled={newName.trim().length === 0}
@@ -142,7 +150,7 @@ export function TargetPickerSheet({ kind, audioId, onClose }: TargetPickerSheetP
                 key={target.id}
                 testID={`target-${target.id}`}
                 title={target.name}
-                subtitle={pluralize(target.count, 'áudio', 'áudios')}
+                subtitle={t('common.audioCount', { count: target.count })}
                 leadingIcon={kind === 'collection' ? 'albums-outline' : 'list-outline'}
                 selected={isMember}
                 trailing={

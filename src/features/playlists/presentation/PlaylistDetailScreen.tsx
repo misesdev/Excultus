@@ -14,8 +14,9 @@ import {
   AppScreen,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
-import { formatHumanDuration, moveItem, pluralize } from '@core/utils';
+import { formatHumanDuration, moveItem } from '@core/utils';
 import type { AudioLibraryItem } from '@features/audios';
 import { LibraryAudioRow, usePlayAudio } from '@features/library/presentation';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
@@ -23,6 +24,7 @@ import { useQuery } from '@shared/hooks/useQuery';
 import { listStyles } from '@shared/styles/listStyles';
 
 export function PlaylistDetailScreen() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const navigation = useAppNavigation();
   const { playlistId } = useAppRoute<typeof Routes.PlaylistDetail>().params;
@@ -59,7 +61,7 @@ export function PlaylistDetailScreen() {
       await playlists.delete(playlistId);
       navigation.goBack();
     },
-    { successMessage: 'Playlist excluída' },
+    { successMessage: t('playlists.deleted') },
   );
 
   if (loading && !data) {
@@ -74,7 +76,7 @@ export function PlaylistDetailScreen() {
     return (
       <AppScreen>
         <AppHeader onBack={navigation.goBack} />
-        <AppErrorState message={error ?? 'Playlist não encontrada.'} onRetry={refetch} />
+        <AppErrorState message={error ?? t('playlists.notFound')} onRetry={refetch} />
       </AppScreen>
     );
   }
@@ -89,11 +91,11 @@ export function PlaylistDetailScreen() {
   return (
     <AppScreen>
       <AppHeader
-        title={order ? 'Reordenar' : data.playlist.name}
+        title={order ? t('collections.menu.reorder') : data.playlist.name}
         subtitle={
           order
             ? undefined
-            : `${pluralize(items.length, 'áudio', 'áudios')} · ${formatHumanDuration(
+            : `${t('common.audioCount', { count: items.length })} · ${formatHumanDuration(
                 totalMs,
               )}`
         }
@@ -102,7 +104,7 @@ export function PlaylistDetailScreen() {
         actions={
           order ? (
             <AppButton
-              label="Salvar"
+              label={t('common.save')}
               size="sm"
               onPress={() => saveOrder.run()}
               loading={saveOrder.running}
@@ -110,7 +112,7 @@ export function PlaylistDetailScreen() {
           ) : (
             <AppIconButton
               icon="ellipsis-horizontal"
-              accessibilityLabel="Mais opções"
+              accessibilityLabel={t('common.moreOptions')}
               onPress={() => setMenuOpen(true)}
             />
           )
@@ -123,7 +125,11 @@ export function PlaylistDetailScreen() {
       )}
       {!order && items.length > 0 && (
         <View style={styles.actions}>
-          <AppButton label="Reproduzir" icon="play" onPress={() => playAll.run()} />
+          <AppButton
+            label={t('audioActions.play')}
+            icon="play"
+            onPress={() => playAll.run()}
+          />
         </View>
       )}
       <FlatList
@@ -133,9 +139,9 @@ export function PlaylistDetailScreen() {
         ListEmptyComponent={
           <AppEmptyState
             icon="musical-notes-outline"
-            title="Playlist vazia"
-            description="Adicione áudios pelo menu de qualquer áudio ou escolha da biblioteca."
-            actionLabel="Adicionar da biblioteca"
+            title={t('playlists.empty.title')}
+            description={t('playlists.empty.description')}
+            actionLabel={t('collections.empty.addFromLibrary')}
             onAction={() =>
               navigation.navigate(Routes.AudioPicker, {
                 target: { kind: 'playlist', id: playlistId, name: data.playlist.name },
@@ -155,7 +161,7 @@ export function PlaylistDetailScreen() {
                   <AppIconButton
                     icon="chevron-up"
                     size="sm"
-                    accessibilityLabel="Mover para cima"
+                    accessibilityLabel={t('playlists.moveUp')}
                     disabled={index === 0}
                     onPress={() =>
                       setOrder(previous =>
@@ -166,7 +172,7 @@ export function PlaylistDetailScreen() {
                   <AppIconButton
                     icon="chevron-down"
                     size="sm"
-                    accessibilityLabel="Mover para baixo"
+                    accessibilityLabel={t('playlists.moveDown')}
                     disabled={index === shown.length - 1}
                     onPress={() =>
                       setOrder(previous =>
@@ -187,13 +193,13 @@ export function PlaylistDetailScreen() {
         actions={[
           {
             key: 'edit',
-            label: 'Editar',
+            label: t('common.edit'),
             icon: 'create-outline',
             onPress: () => navigation.navigate(Routes.PlaylistForm, { playlistId }),
           },
           {
             key: 'add',
-            label: 'Adicionar áudios',
+            label: t('audioPicker.title'),
             icon: 'add-circle-outline',
             onPress: () =>
               navigation.navigate(Routes.AudioPicker, {
@@ -202,14 +208,14 @@ export function PlaylistDetailScreen() {
           },
           {
             key: 'reorder',
-            label: 'Reordenar',
+            label: t('collections.menu.reorder'),
             icon: 'reorder-four-outline',
             disabled: items.length < 2,
             onPress: () => setOrder(ids),
           },
           {
             key: 'delete',
-            label: 'Excluir playlist',
+            label: t('playlists.deleteAction'),
             icon: 'trash-outline',
             destructive: true,
             onPress: () => setConfirmDelete(true),
@@ -218,19 +224,19 @@ export function PlaylistDetailScreen() {
       />
       <AppDialog
         visible={confirmDelete}
-        title="Excluir playlist?"
-        message="Os áudios continuam na biblioteca e nas coleções."
+        title={t('playlists.deleteDialog.title')}
+        message={t('playlists.deleteDialog.message')}
         onDismiss={() => setConfirmDelete(false)}
         actions={[
           {
-            label: 'Excluir',
+            label: t('common.delete'),
             variant: 'destructive',
             onPress: () => {
               setConfirmDelete(false);
               remove.run();
             },
           },
-          { label: 'Cancelar', onPress: () => setConfirmDelete(false) },
+          { label: t('common.cancel'), onPress: () => setConfirmDelete(false) },
         ]}
       />
     </AppScreen>

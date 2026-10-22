@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { t } from '@core/i18n';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
 import { getUserMessage } from '@core/errors';
 import { COLLECTION_NAME_MAX_LENGTH } from '@features/collections';
@@ -59,7 +60,7 @@ export function useImportViewModel(initialCollectionId?: string) {
 
   const fetchUrl = useCallback(
     (url: string) => {
-      setPhase({ kind: 'loading', message: 'Consultando metadados…' });
+      setPhase({ kind: 'loading', message: t('imports.loadingMetadata') });
       imports
         .previewFromUrl(url)
         .then(showPreview)
@@ -76,7 +77,7 @@ export function useImportViewModel(initialCollectionId?: string) {
   );
 
   const pickLocalFiles = useCallback(() => {
-    setPhase({ kind: 'loading', message: 'Lendo arquivos…' });
+    setPhase({ kind: 'loading', message: t('imports.readingFiles') });
     imports
       .previewLocalFiles()
       .then(preview => (preview ? showPreview(preview) : setPhase({ kind: 'input' })))

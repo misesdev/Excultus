@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { TranslationKey } from '@core/i18n';
 import { FlatList, View } from 'react-native';
 import { Routes, useAppNavigation, useAppRoute } from '@app/navigation/routes';
 import {
@@ -13,6 +14,7 @@ import {
   AppSearchInput,
   makeStyles,
   type AppMenuAction,
+  useTranslation,
 } from '@design-system';
 import { LibraryAudioRow } from '@features/library/presentation';
 import { OptionSheet } from '@shared/components/OptionSheet';
@@ -22,14 +24,15 @@ import { CollectionHeader } from '../components/CollectionHeader';
 import { DeleteCollectionDialog } from '../components/DeleteCollectionDialog';
 import { useCollectionDetailViewModel } from '../view-models/useCollectionDetailViewModel';
 
-const SORT_OPTIONS: Array<{ value: CollectionSortMode; label: string }> = [
-  { value: 'custom', label: 'Ordem personalizada' },
-  { value: 'title', label: 'Nome' },
-  { value: 'addedAt', label: 'Data de adição' },
-  { value: 'duration', label: 'Duração' },
+const SORT_OPTIONS: Array<{ value: CollectionSortMode; label: TranslationKey }> = [
+  { value: 'custom', label: 'collections.sorts.custom' },
+  { value: 'title', label: 'library.sorts.title' },
+  { value: 'addedAt', label: 'library.sorts.addedAt' },
+  { value: 'duration', label: 'library.sorts.duration' },
 ];
 
 export function CollectionDetailScreen() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const navigation = useAppNavigation();
   const { collectionId } = useAppRoute<typeof Routes.CollectionDetail>().params;
@@ -53,7 +56,7 @@ export function CollectionDetailScreen() {
       <AppScreen>
         <AppHeader onBack={navigation.goBack} />
         <AppErrorState
-          message={query.error ?? 'Coleção não encontrada.'}
+          message={query.error ?? t('collections.notFound')}
           onRetry={query.refetch}
         />
       </AppScreen>
@@ -64,13 +67,13 @@ export function CollectionDetailScreen() {
   const menuActions: AppMenuAction[] = [
     {
       key: 'edit',
-      label: 'Editar nome e descrição',
+      label: t('collections.menu.edit'),
       icon: 'create-outline',
       onPress: () => navigation.navigate(Routes.CollectionForm, { collectionId }),
     },
     {
       key: 'cover',
-      label: 'Escolher capa',
+      label: t('collections.menu.chooseCover'),
       icon: 'image-outline',
       onPress: () => vm.chooseArtwork.run(),
     },
@@ -78,7 +81,7 @@ export function CollectionDetailScreen() {
       ? [
           {
             key: 'remove-cover',
-            label: 'Remover capa',
+            label: t('collections.menu.removeCover'),
             icon: 'close-circle-outline' as const,
             onPress: () => vm.removeArtwork.run(),
           },
@@ -86,7 +89,7 @@ export function CollectionDetailScreen() {
       : []),
     {
       key: 'add',
-      label: 'Adicionar áudios da biblioteca',
+      label: t('collections.menu.addFromLibrary'),
       icon: 'add-circle-outline',
       onPress: () =>
         navigation.navigate(Routes.AudioPicker, {
@@ -95,20 +98,20 @@ export function CollectionDetailScreen() {
     },
     {
       key: 'import',
-      label: 'Importar para esta coleção',
+      label: t('collections.menu.importHere'),
       icon: 'cloud-download-outline',
       onPress: () => navigation.navigate(Routes.Import, { collectionId }),
     },
     {
       key: 'reorder',
-      label: 'Reordenar',
+      label: t('collections.menu.reorder'),
       icon: 'reorder-four-outline',
       disabled: summary.audioCount < 2,
       onPress: () => vm.startReorder(),
     },
     {
       key: 'delete',
-      label: 'Excluir coleção',
+      label: t('collections.delete.confirm'),
       icon: 'trash-outline',
       destructive: true,
       onPress: () => setDeleteOpen(true),
@@ -118,13 +121,19 @@ export function CollectionDetailScreen() {
   return (
     <AppScreen testID="collection-detail">
       <AppHeader
-        title={vm.reordering ? 'Reordenar' : searchOpen ? undefined : collection.name}
+        title={
+          vm.reordering
+            ? t('collections.menu.reorder')
+            : searchOpen
+            ? undefined
+            : collection.name
+        }
         onBack={vm.reordering ? vm.cancelReorder : navigation.goBack}
         backIcon={vm.reordering ? 'close' : 'arrow-back'}
         actions={
           vm.reordering ? (
             <AppButton
-              label="Salvar"
+              label={t('common.save')}
               size="sm"
               onPress={() => vm.saveOrder.run()}
               loading={vm.saveOrder.running}
@@ -133,7 +142,9 @@ export function CollectionDetailScreen() {
             <>
               <AppIconButton
                 icon={searchOpen ? 'close' : 'search'}
-                accessibilityLabel={searchOpen ? 'Fechar busca' : 'Buscar nesta coleção'}
+                accessibilityLabel={
+                  searchOpen ? t('collections.closeSearch') : t('collections.searchHere')
+                }
                 onPress={() => {
                   setSearchOpen(open => !open);
                   vm.setSearchText('');
@@ -141,7 +152,7 @@ export function CollectionDetailScreen() {
               />
               <AppIconButton
                 icon="swap-vertical"
-                accessibilityLabel="Ordenar"
+                accessibilityLabel={t('collections.sort')}
                 onPress={() => setSortOpen(true)}
               />
             </>
@@ -153,7 +164,7 @@ export function CollectionDetailScreen() {
           <AppSearchInput
             value={vm.searchText}
             onChangeText={vm.setSearchText}
-            placeholder="Buscar nesta coleção"
+            placeholder={t('collections.searchHere')}
             autoFocus
           />
         </View>
@@ -183,17 +194,17 @@ export function CollectionDetailScreen() {
             <AppEmptyState
               compact
               icon="search-outline"
-              title="Nada encontrado nesta coleção"
+              title={t('collections.noResults')}
             />
           ) : (
             <AppEmptyState
               compact
               icon="musical-notes-outline"
-              title="Coleção vazia"
-              description="Adicione áudios da biblioteca ou importe de uma fonte externa."
-              actionLabel="Importar para esta coleção"
+              title={t('collections.empty.title')}
+              description={t('collections.empty.description')}
+              actionLabel={t('collections.menu.importHere')}
               onAction={() => navigation.navigate(Routes.Import, { collectionId })}
-              secondaryActionLabel="Adicionar da biblioteca"
+              secondaryActionLabel={t('collections.empty.addFromLibrary')}
               onSecondaryAction={() =>
                 navigation.navigate(Routes.AudioPicker, {
                   target: { kind: 'collection', id: collectionId, name: collection.name },
@@ -219,14 +230,18 @@ export function CollectionDetailScreen() {
                   <AppIconButton
                     icon="chevron-up"
                     size="sm"
-                    accessibilityLabel={`Mover ${item.audio.title} para cima`}
+                    accessibilityLabel={t('collections.moveUp', {
+                      title: item.audio.title,
+                    })}
                     disabled={index === 0}
                     onPress={() => vm.move(index, index - 1)}
                   />
                   <AppIconButton
                     icon="chevron-down"
                     size="sm"
-                    accessibilityLabel={`Mover ${item.audio.title} para baixo`}
+                    accessibilityLabel={t('collections.moveDown', {
+                      title: item.audio.title,
+                    })}
                     disabled={index === vm.items.length - 1}
                     onPress={() => vm.move(index, index + 1)}
                   />
@@ -244,8 +259,8 @@ export function CollectionDetailScreen() {
       />
       <OptionSheet
         visible={sortOpen}
-        title="Ordenar por"
-        options={SORT_OPTIONS}
+        title={t('library.sortTitle')}
+        options={SORT_OPTIONS.map(option => ({ ...option, label: t(option.label) }))}
         selected={vm.sort}
         onSelect={mode => vm.changeSort.run(mode)}
         onClose={() => setSortOpen(false)}

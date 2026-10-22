@@ -7,10 +7,12 @@ import {
   AppProgressBar,
   AppText,
   makeStyles,
+  useTranslation,
 } from '@design-system';
 import { useIsPlaying, usePlayerStore } from '../store/playerStore';
 
 function MiniPlayerProgress() {
+  const { t } = useTranslation();
   const ratio = usePlayerStore(state =>
     state.durationMs > 0 ? state.positionMs / state.durationMs : 0,
   );
@@ -18,7 +20,7 @@ function MiniPlayerProgress() {
     <AppProgressBar
       progress={ratio}
       height={2}
-      accessibilityLabel="Progresso da reprodução"
+      accessibilityLabel={t('player.progress')}
     />
   );
 }
@@ -29,6 +31,7 @@ export interface MiniPlayerProps {
 
 /** Persistent compact player shown above the tab bar while there is active content. */
 export function MiniPlayer({ onOpen }: MiniPlayerProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { player } = useDependencies();
   const current = usePlayerStore(state => state.current);
@@ -48,8 +51,8 @@ export function MiniPlayer({ onOpen }: MiniPlayerProps) {
         style={({ pressed }) => [styles.content, pressed && styles.pressed]}
         onPress={onOpen}
         accessibilityRole="button"
-        accessibilityLabel={`Abrir player: ${current.title}`}
-        accessibilityHint="Abre o player em tela cheia"
+        accessibilityLabel={t('player.open', { title: current.title })}
+        accessibilityHint={t('player.openHint')}
       >
         <AppArtwork
           source={current.artworkPath}
@@ -66,18 +69,18 @@ export function MiniPlayer({ onOpen }: MiniPlayerProps) {
             color={isError ? 'error' : 'textSecondary'}
             numberOfLines={1}
           >
-            {isError ? 'Não foi possível reproduzir' : current.subtitle ?? ' '}
+            {isError ? t('player.couldNotPlay') : current.subtitle ?? ' '}
           </AppText>
         </View>
         <AppIconButton
           icon={isPlaying ? 'pause' : 'play'}
-          accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
+          accessibilityLabel={isPlaying ? t('player.pause') : t('audioActions.play')}
           onPress={() => player.togglePlayPause()}
           testID="mini-player-toggle"
         />
         <AppIconButton
           icon="play-skip-forward"
-          accessibilityLabel="Próxima faixa"
+          accessibilityLabel={t('player.next')}
           onPress={() => player.skipToNext()}
           disabled={!hasNext}
         />

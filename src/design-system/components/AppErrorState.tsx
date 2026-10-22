@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppEmptyState } from './AppEmptyState';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppErrorStateProps {
   /** Friendly message (already mapped from the technical error). */
@@ -9,19 +10,15 @@ export interface AppErrorStateProps {
   compact?: boolean;
 }
 
-export function AppErrorState({
-  message,
-  title = 'Algo deu errado',
-  onRetry,
-  compact,
-}: AppErrorStateProps) {
+export function AppErrorState({ message, title, onRetry, compact }: AppErrorStateProps) {
+  const { t } = useTranslation();
   return (
     <AppEmptyState
       testID="error-state"
       icon="cloud-offline-outline"
-      title={title}
+      title={title ?? t('common.somethingWentWrong')}
       description={message}
-      actionLabel={onRetry ? 'Tentar novamente' : undefined}
+      actionLabel={onRetry ? t('common.retry') : undefined}
       onAction={onRetry}
       compact={compact}
     />

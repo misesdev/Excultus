@@ -1,44 +1,45 @@
 # zapstore.yaml — Excultus
-# Configuração do zsp (https://github.com/zapstore/zsp), que publica o app no
-# Zapstore (https://zapstore.dev), loja de apps Android descentralizada sobre Nostr.
+# Configuration for zsp (https://github.com/zapstore/zsp), which publishes the app on
+# Zapstore (https://zapstore.dev), a decentralized Android app store built on Nostr.
 #
-# O APK vem do GitHub Release mais recente (criado pelo workflow
-# .github/workflows/release.yml). Guia completo: docs/zapstore.md
+# The APK comes from the latest GitHub Release (created by the
+# .github/workflows/release.yml workflow). Full guide: docs/zapstore.md
 
 repository: https://github.com/misesdev/Excultus
 website: https://github.com/misesdev/Excultus
 
 name: Excultus
 
-summary: "Biblioteca de áudio offline: importe, baixe e ouça cursos, audiolivros, podcasts e músicas"
+summary: "Offline-first audio library: import, download and listen to courses, audiobooks, podcasts and music"
 
 description: |
-  Excultus é um app de código aberto para montar sua biblioteca pessoal de áudio e ouvir
-  tudo offline. Sem conta, sem backend, sem anúncios e sem analytics: tudo fica no seu
-  aparelho.
+  Excultus is an open-source app to build your personal audio library and listen to it
+  offline. No account, no backend, no ads and no analytics: everything stays on your device.
 
-  IMPORTE DE ONDE QUISER
+  Available in English and Portuguese: the app follows your device language and can be
+  switched in Settings.
 
-  - Itens do Internet Archive (archive.org)
-  - Vídeos e playlists do YouTube, com o áudio baixado em M4A
-  - Links diretos de áudio e arquivos do próprio dispositivo
+  IMPORT FROM ANYWHERE
 
-  DOWNLOADS QUE NÃO SE PERDEM
+  - Items from the Internet Archive (archive.org)
+  - YouTube videos and playlists, with the audio downloaded as M4A
+  - Direct audio links and files from your device
 
-  Fila com pausa e retomada, novas tentativas automáticas, validação de integridade e
-  controle de espaço em disco.
+  DOWNLOADS THAT DON'T GET LOST
 
-  PLAYER COMPLETO
+  A download queue with pause and resume, automatic retries, integrity checks and disk
+  space control.
 
-  Reprodução em segundo plano com notificação e controles na tela bloqueada, velocidade,
-  saltos, fila, repetir e aleatório, temporizador, marcadores e retomada de onde parou.
+  A FULL-FEATURED PLAYER
 
-  ORGANIZAÇÃO
+  Background playback with a media notification and lock screen controls, playback speed,
+  skip, queue, repeat and shuffle, sleep timer, bookmarks and resume where you left off.
 
-  Coleções, playlists, favoritos, histórico e busca de texto completo. Backup e
-  restauração em JSON.
+  ORGANIZATION
 
-  Código aberto sob a licença GPL-3.0-or-later.
+  Collections, playlists, favorites, history and full-text search. JSON backup and restore.
+
+  Open source under the GPL-3.0-or-later license.
 
 license: GPL-3.0-or-later
 
@@ -56,12 +57,11 @@ tags:
 
 icon: ./android/app/src/main/ic_launcher-playstore.png
 
-# Capturas de tela: veja store/screenshots/README.md e descomente ao adicioná-las.
-# images:
-#   - ./store/screenshots/01-inicio.png
-#   - ./store/screenshots/02-colecoes.png
-#   - ./store/screenshots/03-player.png
-#   - ./store/screenshots/04-downloads.png
+images:
+  - ./store/screenshots/01-home.jpg
+  - ./store/screenshots/02-collections.jpg
+  - ./store/screenshots/03-player.jpg
+  - ./store/screenshots/04-downloads.jpg
 
-# Notas da release: seção da versão publicada (formato Keep a Changelog).
+# Release notes: the published version's section (Keep a Changelog format).
 release_notes: ./CHANGELOG.md

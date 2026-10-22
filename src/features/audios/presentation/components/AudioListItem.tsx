@@ -1,6 +1,12 @@
 import React, { memo } from 'react';
 import { Pressable, View } from 'react-native';
-import { AppIcon, AppIconButton, AppText, makeStyles } from '@design-system';
+import {
+  AppIcon,
+  AppIconButton,
+  AppText,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
 import type { AudioLibraryItem } from '../../domain/entities/AudioLibraryItem';
 import { AudioArtwork } from './AudioArtwork';
 import { audioDurationLabel } from './AudioDuration';
@@ -39,6 +45,7 @@ function AudioListItemComponent({
   disabled = false,
   testID,
 }: AudioListItemProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { audio } = item;
   const detail = [audioDurationLabel(item), audioSubtitle(audio)]
@@ -50,11 +57,15 @@ function AudioListItemComponent({
     <Pressable
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={[audio.title, detail, isCurrent ? 'em reprodução' : undefined]
+      accessibilityLabel={[
+        audio.title,
+        detail,
+        isCurrent ? t('audio.nowPlaying') : undefined,
+      ]
         .filter(Boolean)
         .join(', ')}
       accessibilityState={{ selected, disabled }}
-      accessibilityHint="Toque para reproduzir; toque longo para mais opções"
+      accessibilityHint={t('audio.listItemHint')}
       onPress={onPress}
       onLongPress={onLongPress ?? onMore}
       disabled={disabled}
@@ -104,7 +115,7 @@ function AudioListItemComponent({
             icon="ellipsis-vertical"
             size="sm"
             color="textSecondary"
-            accessibilityLabel={`Mais opções para ${audio.title}`}
+            accessibilityLabel={t('audio.moreOptions', { title: audio.title })}
             onPress={onMore}
             testID={testID ? `${testID}-more` : undefined}
           />

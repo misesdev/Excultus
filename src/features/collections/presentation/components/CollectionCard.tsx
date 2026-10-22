@@ -1,7 +1,14 @@
 import React, { memo } from 'react';
 import { Pressable, View } from 'react-native';
-import { AppArtwork, AppIcon, AppProgressBar, AppText, makeStyles } from '@design-system';
-import { formatHumanDuration, pluralize } from '@core/utils';
+import {
+  AppArtwork,
+  AppIcon,
+  AppProgressBar,
+  AppText,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
+import { formatHumanDuration } from '@core/utils';
 import { collectionProgress, type CollectionSummary } from '../../index';
 
 export interface CollectionCardProps {
@@ -17,11 +24,12 @@ function CollectionCardComponent({
   onPress,
   onLongPress,
 }: CollectionCardProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { collection, audioCount, totalDurationMs, offlineCount } = summary;
   const progress = collectionProgress(summary);
   const meta = [
-    pluralize(audioCount, 'áudio', 'áudios'),
+    t('common.audioCount', { count: audioCount }),
     totalDurationMs > 0 ? formatHumanDuration(totalDurationMs) : null,
   ]
     .filter(Boolean)
@@ -64,7 +72,7 @@ function CollectionCardComponent({
           <AppProgressBar
             progress={progress}
             height={3}
-            accessibilityLabel="Progresso da coleção"
+            accessibilityLabel={t('collections.progress')}
           />
         )}
       </View>

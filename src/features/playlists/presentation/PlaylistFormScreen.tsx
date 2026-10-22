@@ -1,7 +1,12 @@
 import React from 'react';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
 import { Routes, useAppNavigation, useAppRoute } from '@app/navigation/routes';
-import { AppHeader, AppLoadingIndicator, AppScreen } from '@design-system';
+import {
+  AppHeader,
+  AppLoadingIndicator,
+  AppScreen,
+  useTranslation,
+} from '@design-system';
 import { NameDescriptionForm } from '@shared/forms/NameDescriptionForm';
 import type { NameDescriptionValues } from '@shared/forms/nameDescriptionSchema';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
@@ -14,6 +19,7 @@ const LIMITS = {
 };
 
 export function PlaylistFormScreen() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const playlistId = useAppRoute<typeof Routes.PlaylistForm>().params?.playlistId;
   const { playlists } = useDependencies();
@@ -33,13 +39,15 @@ export function PlaylistFormScreen() {
         navigation.replace(Routes.PlaylistDetail, { playlistId: created.id });
       }
     },
-    { successMessage: editing ? 'Playlist atualizada' : 'Playlist criada' },
+    {
+      successMessage: editing ? t('playlists.form.updated') : t('playlists.form.created'),
+    },
   );
 
   return (
     <AppScreen keyboardAware scrollable safeTop={false}>
       <AppHeader
-        title={editing ? 'Editar playlist' : 'Nova playlist'}
+        title={editing ? t('playlists.form.editTitle') : t('targetPicker.newPlaylist')}
         onBack={navigation.goBack}
         backIcon="close"
       />
@@ -49,9 +57,9 @@ export function PlaylistFormScreen() {
         <NameDescriptionForm
           testIDPrefix="playlist-form"
           limits={LIMITS}
-          nameLabel="Nome"
-          namePlaceholder="Ex.: Para a academia"
-          submitLabel={editing ? 'Salvar' : 'Criar playlist'}
+          nameLabel={t('forms.nameLabel')}
+          namePlaceholder={t('playlists.form.namePlaceholder')}
+          submitLabel={editing ? t('common.save') : t('playlists.create')}
           submitting={save.running}
           initialValues={
             existing.data

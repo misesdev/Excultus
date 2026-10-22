@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { makeStyles, useTheme } from '../theme/ThemeProvider';
 import { AppText } from '../typography/AppText';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppBottomSheetProps {
   visible: boolean;
@@ -38,6 +39,7 @@ export function AppBottomSheet({
   testID,
   children,
 }: PropsWithChildren<AppBottomSheetProps>) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -115,7 +117,7 @@ export function AppBottomSheet({
           style={styles.fill}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Fechar"
+          accessibilityLabel={t('common.close')}
         />
       </Animated.View>
       <Animated.View

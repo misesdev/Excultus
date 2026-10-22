@@ -1,6 +1,12 @@
 import React, { memo } from 'react';
 import { Pressable, View } from 'react-native';
-import { AppBadge, AppCheckbox, AppText, makeStyles } from '@design-system';
+import {
+  AppBadge,
+  AppCheckbox,
+  AppText,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
 import { formatBytes, formatHumanDuration } from '@core/utils';
 import { isSelectable, type SourceAudioItem } from '../../index';
 
@@ -11,6 +17,7 @@ export interface ImportItemRowProps {
 }
 
 function ImportItemRowComponent({ item, selected, onToggle }: ImportItemRowProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const selectable = isSelectable(item);
   const meta = [
@@ -52,7 +59,7 @@ function ImportItemRowComponent({ item, selected, onToggle }: ImportItemRowProps
         )}
       </View>
       {item.availability === 'restricted' && (
-        <AppBadge label="Indisponível" tone="warning" icon="lock-closed" />
+        <AppBadge label={t('imports.unavailable')} tone="warning" icon="lock-closed" />
       )}
     </Pressable>
   );

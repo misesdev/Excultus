@@ -1,32 +1,47 @@
 # Changelog
 
-Todas as mudanças relevantes do Excultus. Formato baseado em
-[Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); o Zapstore usa a seção da
-versão publicada como notas da release.
+All notable changes to Excultus. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); Zapstore uses the published
+version's section as the release notes.
+
+## [1.2.0] - 2026-10-21
+
+### Added
+
+- English and Portuguese interface. The app follows the device language (English when it
+  isn't supported) and the language can be changed in Settings → Language.
+- Numbers and dates follow the selected language (e.g. "1.5 GB" in English, "1,5 GB" in
+  Portuguese).
+
+### Changed
+
+- English is now the default language.
+- The settings footer shows the real app version.
 
 ## [1.1.0] - 2026-10-21
 
-### Alterado
+### Changed
 
-- Menu inferior redesenhado: dock flutuante arredondado, alinhado ao conteúdo, com um
-  destaque que desliza até a aba ativa.
-- Mini player agora é um card flutuante acima do menu.
+- Redesigned bottom navigation: a floating rounded dock aligned with the content, with a
+  highlight that slides to the active tab.
+- The mini player is now a floating card above the navigation.
 
 ## [1.0.0] - 2026-10-21
 
-Primeira versão.
+First release.
 
-### Adicionado
+### Added
 
-- Importação do Internet Archive, links diretos de áudio, arquivos do dispositivo e vídeos e
-  playlists do YouTube (o áudio é baixado em M4A; vídeos indisponíveis são avisados e não
-  são importados).
-- Downloads persistentes com fila, pausa e retomada, novas tentativas, validação de
-  integridade e controle de espaço.
-- Player em segundo plano com notificação, velocidade, saltos, fila, temporizador,
-  marcadores e retomada de onde parou.
-- Coleções, playlists, favoritos, histórico, busca de texto completo, backup e restauração.
-- Ícone adaptativo do app e ícone de notificação.
+- Import from the Internet Archive, direct audio links, device files, and YouTube videos and
+  playlists (the audio is downloaded as M4A; unavailable videos are reported and not
+  imported).
+- Persistent downloads with a queue, pause and resume, retries, integrity checks and disk
+  space control.
+- Background player with a media notification, playback speed, skip, queue, sleep timer,
+  bookmarks and resume where you left off.
+- Collections, playlists, favorites, history, full-text search, backup and restore.
+- Adaptive app icon and notification icon.
 
+[1.2.0]: https://github.com/misesdev/Excultus/releases/tag/v1.2.0
 [1.1.0]: https://github.com/misesdev/Excultus/releases/tag/v1.1.0
 [1.0.0]: https://github.com/misesdev/Excultus/commits/main

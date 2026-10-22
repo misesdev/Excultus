@@ -1,26 +1,28 @@
-# Capturas de tela da loja
+# Store screenshots
 
-Imagens exibidas na página do Excultus no Zapstore (referenciadas em `zapstore.yaml`).
+Images shown on the Excultus page on Zapstore (listed in `zapstore.yaml`) and in the
+project README.
 
-## Arquivos
+## Files
 
-| Arquivo | Tela |
+| File | Screen |
 |---|---|
-| `01-inicio.png` | Início: "Continuar ouvindo", atalhos da biblioteca e coleções |
-| `02-colecoes.png` | Coleções |
-| `03-player.png` | Player em tela cheia |
-| `04-downloads.png` | Downloads, com o uso de armazenamento |
+| `01-home.jpg` | Home: continue listening, library shortcuts and mini player |
+| `02-collections.jpg` | Collections |
+| `03-player.jpg` | Full-screen player |
+| `04-downloads.jpg` | Downloads, with storage usage |
 
-## Especificação
+## Specs
 
-- PNG em retrato, resolução nativa do aparelho (ex.: 1080 × 2400), sem moldura.
-- Use conteúdo que possa ser divulgado (ex.: itens de domínio público do Internet Archive),
-  sem dados pessoais nem capas de terceiros.
+- Portrait JPG or PNG at the device's native resolution (e.g. 1080 × 2340), no device frame.
+- Only show content that can be published (e.g. public-domain Internet Archive items), with no
+  personal data.
 
-## Como capturar
+## Capturing
 
 ```bash
-adb exec-out screencap -p > store/screenshots/01-inicio.png
+adb exec-out screencap -p > store/screenshots/01-home.png
 ```
 
-Depois de adicionar as imagens, descomente a lista `images:` no `zapstore.yaml`.
+When adding, renaming or removing a screenshot, update the `images:` list in `zapstore.yaml`
+and the screenshot gallery in the README.

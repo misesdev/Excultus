@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppText, type AppTextProps } from '@design-system';
+import { t } from '@core/i18n';
+import { AppText, useTranslation, type AppTextProps } from '@design-system';
 import { formatHumanDuration } from '@core/utils';
 import type { AudioLibraryItem } from '../../domain/entities/AudioLibraryItem';
 
@@ -10,12 +11,12 @@ export function audioDurationLabel(item: AudioLibraryItem): string | undefined {
     return undefined;
   }
   if (item.progress?.completed) {
-    return 'Concluído';
+    return t('audio.completed');
   }
   if (item.progress && item.progress.positionMs > 0) {
-    return `Restam ${formatHumanDuration(
-      Math.max(0, duration - item.progress.positionMs),
-    )}`;
+    return t('audio.remaining', {
+      duration: formatHumanDuration(Math.max(0, duration - item.progress.positionMs)),
+    });
   }
   return formatHumanDuration(duration);
 }
@@ -24,6 +25,7 @@ export function AudioDuration({
   item,
   ...textProps
 }: { item: AudioLibraryItem } & Omit<AppTextProps, 'children'>) {
+  useTranslation();
   const label = audioDurationLabel(item);
   if (!label) {
     return null;

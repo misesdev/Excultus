@@ -33,6 +33,10 @@ npm run e2e:offline     # 01: criar coleção, validação de formulário, persi
 npm run e2e             # inclui 02 (requer internet)
 ```
 
+Os fluxos procuram textos em **inglês**: deixe o emulador em inglês (o padrão) ou com
+"Idioma do app" = English nos Ajustes. Os testes Jest existentes rodam em pt-BR
+(`test/setup/jest.setup.js`); o inglês é coberto pelos testes de i18n.
+
 | Fluxo | Cobre |
 |---|---|
 | `01_create_collection` (tag `offline`) | criar coleção, validação, persistir após fechar/reabrir |

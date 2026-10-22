@@ -73,3 +73,10 @@ entre apresentações (grafo acíclico: audios → player/downloads → library 
 `InsufficientStorageError`, `DownloadFailedError`, `AudioPlaybackError`, `DatabaseError`,
 `FileNotFoundError`, `PermissionDeniedError`, ...). A UI só exibe `getUserMessage(error)`
 (pt-BR); detalhes técnicos vão para o log estruturado (`ConsoleLogger`, JSON por linha no logcat).
+
+## Idiomas
+
+Inglês (padrão) e português, seguindo o idioma do aparelho ou a escolha em Ajustes → Idioma.
+Textos ficam em `src/core/i18n/locales` e são lidos com `t('chave')`; componentes usam
+`useTranslation()` para re-renderizar na troca de idioma. Detalhes no
+[ADR 0007](decisions/0007-internacionalizacao.md).

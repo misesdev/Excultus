@@ -13,7 +13,7 @@ export interface AudioCardProps {
   testID?: string;
 }
 
-/** Large tile used in horizontal shelves ("Continuar ouvindo"). */
+/** Large tile used in horizontal shelves ("Continue listening"). */
 export function AudioCard({ item, onPress, onLongPress, testID }: AudioCardProps) {
   const theme = useTheme();
   const styles = useStyles();

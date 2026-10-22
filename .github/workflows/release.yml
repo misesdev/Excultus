@@ -1,7 +1,7 @@
 name: Release
 
-# A cada push na main: se a versão do package.json ainda não tem tag, gera o
-# APK assinado, cria o GitHub Release e publica no Zapstore. Guia: docs/zapstore.md
+# On every push to main: if the package.json version has no tag yet, build the
+# signed APK, create the GitHub Release and publish to Zapstore. Guide: docs/zapstore.md
 
 on:
   push:
@@ -14,14 +14,14 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # SHA-256 do certificado de release (público). Impede publicar um APK
-  # assinado com outra chave, por exemplo a de debug.
+  # SHA-256 of the release certificate (public). Prevents publishing an APK
+  # signed with any other key, such as the debug key.
   RELEASE_CERT_SHA256: a77d2afad125438ae242da2f71078b8ea0fa1effc8de60373cf1c8f1c72c6ad4
   ZSP_VERSION: 0.4.17
 
 jobs:
   release:
-    name: Build, GitHub Release e Zapstore
+    name: Build, GitHub Release and Zapstore
     runs-on: ubuntu-latest
     environment: Prod
     permissions:
@@ -34,14 +34,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ── Versão ────────────────────────────────────────────────────────────
+      # ── Version ───────────────────────────────────────────────────────────
       - name: Read version
         id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
           GRADLE_VERSION=$(sed -n 's/^ *versionName "\(.*\)"$/\1/p' android/app/build.gradle)
           if [ "$VERSION" != "$GRADLE_VERSION" ]; then
-            echo "::error::package.json ($VERSION) e versionName do build.gradle ($GRADLE_VERSION) divergem."
+            echo "::error::package.json ($VERSION) and build.gradle versionName ($GRADLE_VERSION) differ."
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -51,7 +51,7 @@ jobs:
         id: tag_check
         run: |
           if git ls-remote --tags origin "refs/tags/${{ steps.version.outputs.tag }}" | grep -q .; then
-            echo "Tag ${{ steps.version.outputs.tag }} já existe: nada a publicar."
+            echo "Tag ${{ steps.version.outputs.tag }} already exists: nothing to publish."
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -67,7 +67,7 @@ jobs:
             found { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
           if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
-            echo "::error::CHANGELOG.md não tem a seção [${{ steps.version.outputs.version }}]."
+            echo "::error::CHANGELOG.md has no [${{ steps.version.outputs.version }}] section."
             exit 1
           fi
 
@@ -91,19 +91,19 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      # ── Keystore (nunca vai para o repositório) ───────────────────────────
+      # ── Keystore (never committed) ────────────────────────────────────────
       - name: Decode keystore
         if: steps.tag_check.outputs.exists == 'false'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Configure os secrets do keystore no environment Prod (docs/zapstore.md)."
+            echo "::error::Set the keystore secrets in the Prod environment (docs/zapstore.md)."
             exit 1
           fi
           echo "$KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/excultus-release.jks"
 
-      # ── Build do APK assinado ─────────────────────────────────────────────
+      # ── Signed APK build ─────────────────────────────────────────────────
       - name: Build release APK
         if: steps.tag_check.outputs.exists == 'false'
         env:
@@ -122,7 +122,7 @@ jobs:
           APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
           CERT=$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
           if [ "$CERT" != "$RELEASE_CERT_SHA256" ]; then
-            echo "::error::APK assinado com o certificado errado ($CERT)."
+            echo "::error::APK signed with the wrong certificate ($CERT)."
             exit 1
           fi
           cp "$APK" "$RUNNER_TEMP/excultus-${{ steps.version.outputs.tag }}.apk"
@@ -158,7 +158,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$SIGN_WITH" ]; then
-            echo "::warning::Secret SIGN_WITH não configurado: publicação no Zapstore ignorada."
+            echo "::warning::SIGN_WITH secret not set: skipping Zapstore publishing."
             exit 0
           fi
           curl -fsSL -o "$RUNNER_TEMP/zsp" \

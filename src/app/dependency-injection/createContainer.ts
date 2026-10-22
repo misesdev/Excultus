@@ -9,6 +9,7 @@ import {
   type Logger,
   type NetworkMonitor,
 } from '@core/application';
+import { resolveLocale, setLocale } from '@core/i18n';
 import { createAudioUseCases } from '@features/audios';
 import { createBookmarkUseCases } from '@features/bookmarks';
 import { createCollectionUseCases } from '@features/collections';
@@ -72,6 +73,8 @@ export interface PlatformAdapters {
   engine: AudioPlaybackEngine;
   http: HttpClient;
   youtube: YouTubeExtractor;
+  /** Device language tag ("pt-BR", "en_US"); English when unsupported or absent. */
+  deviceLocale?: () => string | undefined;
   logger: Logger;
   clock?: Clock;
   generateId?: IdGenerator;
@@ -109,6 +112,14 @@ export async function createContainer(adapters: PlatformAdapters) {
 
   // Services
   const settings = new SettingsService(keyValue, events, clock);
+  const applyLanguage = () => {
+    const { language } = settings.get().general;
+    setLocale(
+      resolveLocale(language === 'system' ? adapters.deviceLocale?.() : language),
+    );
+  };
+  // Device language until the saved preference is loaded in start().
+  applyLanguage();
   const downloads = new DownloadManager({
     repository: downloadRepository,
     downloader,
@@ -232,7 +243,9 @@ export async function createContainer(adapters: PlatformAdapters) {
     async start(): Promise<void> {
       await storage.ensureDirectories();
       await settings.load();
+      applyLanguage();
       settings.subscribe(() => {
+        applyLanguage();
         downloads
           .reschedule()
           .catch(error => logger.error('downloads.reschedule_failed', {}, error));

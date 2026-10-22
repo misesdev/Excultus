@@ -15,6 +15,7 @@ import {
   makeStyles,
   useFadeIn,
   useTheme,
+  useTranslation,
 } from '@design-system';
 import { getUserMessageForCode } from '@core/errors';
 import { formatClock } from '@core/utils';
@@ -35,16 +36,17 @@ type Sheet = 'speed' | 'timer' | 'queue' | 'bookmarks' | null;
 const MAX_ARTWORK_SIZE = 340;
 
 function SleepTimerChip({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
   const timer = usePlayerStore(state => state.sleepTimer);
   // Re-render with the progress tick so the countdown stays current.
   usePlayerStore(state => Math.floor(state.positionMs / 1000));
   const remaining = remainingTimerMs(timer, Date.now());
   const label =
     timer?.kind === 'end-of-track'
-      ? 'Fim da faixa'
+      ? t('player.timer.endOfTrackShort')
       : remaining !== undefined
       ? formatClock(remaining)
-      : 'Timer';
+      : t('player.timer.chip');
   return (
     <AppChip
       label={label}
@@ -57,13 +59,14 @@ function SleepTimerChip({ onPress }: { onPress: () => void }) {
 }
 
 function RepeatButton() {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { player } = useDependencies();
   const mode = usePlayerStore(state => state.repeatMode);
   const labels = {
-    off: 'Repetir desativado',
-    all: 'Repetir fila',
-    one: 'Repetir faixa',
+    off: t('player.repeat.off'),
+    all: t('player.repeat.all'),
+    one: t('player.repeat.one'),
   } as const;
   return (
     <View>
@@ -87,6 +90,7 @@ function RepeatButton() {
 
 /** Immersive player. Primary controls sit in the lower half for one-hand use. */
 export function FullPlayerScreen() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -115,9 +119,9 @@ export function FullPlayerScreen() {
         <AppHeader onBack={navigation.goBack} backIcon="chevron-down" />
         <AppEmptyState
           icon="musical-notes-outline"
-          title="Nada tocando"
-          description="Escolha um áudio da sua biblioteca para começar."
-          actionLabel="Voltar"
+          title={t('player.nothingPlaying')}
+          description={t('player.nothingPlayingDescription')}
+          actionLabel={t('common.back')}
           onAction={navigation.goBack}
         />
       </AppScreen>
@@ -129,14 +133,14 @@ export function FullPlayerScreen() {
   return (
     <AppScreen testID="full-player">
       <AppHeader
-        title="Tocando agora"
+        title={t('player.nowPlaying')}
         subtitle={contextLabel}
         onBack={navigation.goBack}
         backIcon="chevron-down"
         actions={
           <AppIconButton
             icon="ellipsis-horizontal"
-            accessibilityLabel="Mais opções"
+            accessibilityLabel={t('common.moreOptions')}
             disabled={!item}
             onPress={() => item && openAudioActions(item, { fromPlayer: true })}
           />
@@ -155,7 +159,7 @@ export function FullPlayerScreen() {
             seed={current.audioId}
             size={artworkSize}
             radius="xl"
-            accessibilityLabel={`Capa de ${current.title}`}
+            accessibilityLabel={t('audio.cover', { title: current.title })}
           />
         </Animated.View>
 
@@ -175,7 +179,9 @@ export function FullPlayerScreen() {
             selected={item?.isFavorite}
             color={item?.isFavorite ? 'primary' : 'textSecondary'}
             accessibilityLabel={
-              item?.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+              item?.isFavorite
+                ? t('audioActions.removeFavorite')
+                : t('audioActions.addFavorite')
             }
             onPress={() => toggleFavorite.run(current.audioId)}
             testID="player-favorite"
@@ -188,7 +194,7 @@ export function FullPlayerScreen() {
               {getUserMessageForCode(errorCode ?? 'audio-playback')}
             </AppText>
             <AppButton
-              label="Tentar novamente"
+              label={t('common.retry')}
               size="sm"
               variant="ghost"
               onPress={() => player.resume()}
@@ -212,22 +218,20 @@ export function FullPlayerScreen() {
           <AppIconButton
             icon="shuffle"
             selected={shuffled}
-            accessibilityLabel={
-              shuffled ? 'Desativar ordem aleatória' : 'Ativar ordem aleatória'
-            }
+            accessibilityLabel={shuffled ? t('player.shuffleOff') : t('player.shuffleOn')}
             onPress={() => player.toggleShuffle()}
             testID="player-shuffle"
           />
           <RepeatButton />
           <AppIconButton
             icon="bookmark-outline"
-            accessibilityLabel="Marcadores"
+            accessibilityLabel={t('home.shortcuts.bookmarks')}
             onPress={() => setSheet('bookmarks')}
             testID="player-bookmarks"
           />
           <AppIconButton
             icon="list"
-            accessibilityLabel="Fila de reprodução"
+            accessibilityLabel={t('player.queue')}
             onPress={() => setSheet('queue')}
             testID="player-queue"
           />

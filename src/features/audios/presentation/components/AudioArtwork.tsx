@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppArtwork, type AppArtworkProps } from '@design-system';
+import { AppArtwork, type AppArtworkProps, useTranslation } from '@design-system';
 import type { Audio } from '../../domain/entities/Audio';
 
 const SOURCE_ICONS = {
@@ -15,6 +15,7 @@ export interface AudioArtworkProps
 }
 
 export function AudioArtwork({ audio, size, radius, testID }: AudioArtworkProps) {
+  const { t } = useTranslation();
   return (
     <AppArtwork
       source={audio.artworkPath}
@@ -22,7 +23,7 @@ export function AudioArtwork({ audio, size, radius, testID }: AudioArtworkProps)
       size={size}
       radius={radius}
       placeholderIcon={SOURCE_ICONS[audio.sourceType]}
-      accessibilityLabel={`Capa de ${audio.title}`}
+      accessibilityLabel={t('audio.cover', { title: audio.title })}
       testID={testID}
     />
   );

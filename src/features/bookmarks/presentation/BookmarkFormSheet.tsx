@@ -9,16 +9,26 @@ import {
   AppText,
   AppTextInput,
   makeStyles,
+  useTranslation,
 } from '@design-system';
+
+import type { TranslationKey } from '@core/i18n';
 import { formatClock } from '@core/utils';
 import { BOOKMARK_NOTE_MAX_LENGTH, BOOKMARK_TITLE_MAX_LENGTH } from '../index';
 
-const schema = z.object({
-  title: z.string().trim().max(BOOKMARK_TITLE_MAX_LENGTH, 'Título muito longo'),
-  note: z.string().trim().max(BOOKMARK_NOTE_MAX_LENGTH, 'Anotação muito longa'),
-});
+const bookmarkSchema = (translate: (key: TranslationKey) => string) =>
+  z.object({
+    title: z
+      .string()
+      .trim()
+      .max(BOOKMARK_TITLE_MAX_LENGTH, translate('bookmarks.form.titleTooLong')),
+    note: z
+      .string()
+      .trim()
+      .max(BOOKMARK_NOTE_MAX_LENGTH, translate('bookmarks.form.noteTooLong')),
+  });
 
-export type BookmarkFormValues = z.infer<typeof schema>;
+export type BookmarkFormValues = z.infer<ReturnType<typeof bookmarkSchema>>;
 
 export interface BookmarkFormSheetProps {
   visible: boolean;
@@ -37,9 +47,10 @@ export function BookmarkFormSheet({
   onSubmit,
   onClose,
 }: BookmarkFormSheetProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { control, handleSubmit, reset, formState } = useForm<BookmarkFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(bookmarkSchema(t)),
     defaultValues: { title: '', note: '' },
   });
 
@@ -53,20 +64,20 @@ export function BookmarkFormSheet({
     <AppBottomSheet
       visible={visible}
       onClose={onClose}
-      title="Marcador"
+      title={t('bookmarks.form.title')}
       testID="bookmark-form"
     >
       <View style={styles.body}>
         <AppText variant="caption" color="textSecondary" align="center">
-          Posição {formatClock(positionMs)}
+          {t('bookmarks.form.position', { position: formatClock(positionMs) })}
         </AppText>
         <Controller
           control={control}
           name="title"
           render={({ field }) => (
             <AppTextInput
-              label="Título (opcional)"
-              placeholder="Ex.: Conceito importante"
+              label={t('bookmarks.form.titleLabel')}
+              placeholder={t('bookmarks.form.titlePlaceholder')}
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
@@ -81,8 +92,8 @@ export function BookmarkFormSheet({
           name="note"
           render={({ field }) => (
             <AppTextInput
-              label="Anotação (opcional)"
-              placeholder="Escreva o que quiser lembrar"
+              label={t('bookmarks.form.noteLabel')}
+              placeholder={t('bookmarks.form.notePlaceholder')}
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
@@ -94,7 +105,7 @@ export function BookmarkFormSheet({
           )}
         />
         <AppButton
-          label="Salvar marcador"
+          label={t('bookmarks.form.submit')}
           icon="bookmark"
           onPress={handleSubmit(onSubmit)}
           loading={submitting}

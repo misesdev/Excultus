@@ -7,6 +7,7 @@ export * from './icons/AppIcon';
 export * from './typography/AppText';
 export * from './animations/haptics';
 export * from './animations/useFadeIn';
+export * from './hooks/useTranslation';
 
 export * from './components/AppArtwork';
 export * from './components/AppAvatar';

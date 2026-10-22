@@ -1,6 +1,7 @@
 import React, { type PropsWithChildren } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { makeStyles } from '../theme/ThemeProvider';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppModalProps {
   visible: boolean;
@@ -18,6 +19,7 @@ export function AppModal({
   testID,
   children,
 }: PropsWithChildren<AppModalProps>) {
+  const { t } = useTranslation();
   const styles = useStyles();
   return (
     <Modal
@@ -32,7 +34,7 @@ export function AppModal({
         <Pressable
           style={styles.dismissArea}
           accessibilityRole="button"
-          accessibilityLabel="Fechar"
+          accessibilityLabel={t('common.close')}
           disabled={!dismissible}
           onPress={onRequestClose}
         />

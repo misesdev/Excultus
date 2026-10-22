@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { t } from '@core/i18n';
 
 /**
  * Form schema shared by collection and playlist forms. Domain validation
@@ -10,12 +11,12 @@ export function nameDescriptionSchema(limits: { name: number; description: numbe
     name: z
       .string()
       .trim()
-      .min(1, 'Informe um nome')
-      .max(limits.name, `Use no máximo ${limits.name} caracteres`),
+      .min(1, t('forms.nameRequired'))
+      .max(limits.name, t('forms.maxLength', { max: limits.name })),
     description: z
       .string()
       .trim()
-      .max(limits.description, `Use no máximo ${limits.description} caracteres`),
+      .max(limits.description, t('forms.maxLength', { max: limits.description })),
   });
 }
 

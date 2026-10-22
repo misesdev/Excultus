@@ -3,6 +3,7 @@ import { Animated, View, type DimensionValue } from 'react-native';
 import { usePulse } from '../animations/useFadeIn';
 import { makeStyles, useTheme } from '../theme/ThemeProvider';
 import type { radius as radiusTokens } from '../tokens';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppSkeletonProps {
   width?: DimensionValue;
@@ -31,11 +32,12 @@ export function AppSkeleton({
 
 /** Skeleton shaped like a list row: artwork + two text lines. */
 export function AppListSkeleton({ rows = 6 }: { rows?: number }) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const theme = useTheme();
   return (
     <View
-      accessibilityLabel="Carregando"
+      accessibilityLabel={t('common.loading')}
       accessibilityRole="progressbar"
       testID="list-skeleton"
     >

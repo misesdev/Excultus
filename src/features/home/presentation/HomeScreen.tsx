@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { FlatList, ScrollView, View } from 'react-native';
+import type { TranslationKey } from '@core/i18n';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
 import { Routes, useAppNavigation } from '@app/navigation/routes';
 import {
@@ -13,6 +14,7 @@ import {
   AppSkeleton,
   makeStyles,
   useTheme,
+  useTranslation,
 } from '@design-system';
 import type { AudioLibraryItem } from '@features/audios';
 import { AudioCard, openAudioActions } from '@features/audios/presentation';
@@ -24,15 +26,16 @@ import { ShortcutGrid, type Shortcut } from './components/ShortcutGrid';
 const CONTINUE_LIMIT = 10;
 const RECENT_LIMIT = 5;
 
-function greeting(hour: number): string {
+function greetingKey(hour: number): TranslationKey {
   if (hour < 12) {
-    return 'Bom dia';
+    return 'home.greeting.morning';
   }
-  return hour < 18 ? 'Boa tarde' : 'Boa noite';
+  return hour < 18 ? 'home.greeting.afternoon' : 'home.greeting.evening';
 }
 
 /** Home prioritizes continuity: what you were listening to comes first. */
 export function HomeScreen() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useStyles();
   const navigation = useAppNavigation();
@@ -55,39 +58,45 @@ export function HomeScreen() {
   const shortcuts: Shortcut[] = [
     {
       key: 'favorites',
-      label: 'Favoritos',
+      label: t('home.shortcuts.favorites'),
       icon: 'heart',
       onPress: () =>
-        navigation.navigate(Routes.Library, { filter: 'favorites', title: 'Favoritos' }),
+        navigation.navigate(Routes.Library, {
+          filter: 'favorites',
+          title: t('home.shortcuts.favorites'),
+        }),
     },
     {
       key: 'playlists',
-      label: 'Playlists',
+      label: t('home.shortcuts.playlists'),
       icon: 'list',
       onPress: () => navigation.navigate(Routes.Playlists),
     },
     {
       key: 'bookmarks',
-      label: 'Marcadores',
+      label: t('home.shortcuts.bookmarks'),
       icon: 'bookmarks',
       onPress: () => navigation.navigate(Routes.Bookmarks),
     },
     {
       key: 'history',
-      label: 'Histórico',
+      label: t('home.shortcuts.history'),
       icon: 'time',
       onPress: () => navigation.navigate(Routes.History),
     },
     {
       key: 'offline',
-      label: 'Baixados',
+      label: t('home.shortcuts.downloaded'),
       icon: 'arrow-down-circle',
       onPress: () =>
-        navigation.navigate(Routes.Library, { filter: 'downloaded', title: 'Baixados' }),
+        navigation.navigate(Routes.Library, {
+          filter: 'downloaded',
+          title: t('home.shortcuts.downloaded'),
+        }),
     },
     {
       key: 'all',
-      label: 'Todos os áudios',
+      label: t('home.shortcuts.allAudios'),
       icon: 'library',
       onPress: () => navigation.navigate(Routes.Library),
     },
@@ -95,21 +104,21 @@ export function HomeScreen() {
 
   const header = (
     <AppHeader
-      title={greeting(new Date().getHours())}
-      subtitle="Sua biblioteca de áudio"
+      title={t(greetingKey(new Date().getHours()))}
+      subtitle={t('home.subtitle')}
       variant="large"
       actions={
         <>
           <AppIconButton
             icon="search"
-            accessibilityLabel="Buscar na biblioteca"
+            accessibilityLabel={t('home.searchLibrary')}
             onPress={() => navigation.navigate(Routes.Library)}
             testID="home-search"
           />
           <AppIconButton
             icon="add"
             variant="tonal"
-            accessibilityLabel="Importar conteúdo"
+            accessibilityLabel={t('home.importContent')}
             onPress={() => navigation.navigate(Routes.Import)}
             testID="home-import"
           />
@@ -154,11 +163,11 @@ export function HomeScreen() {
       {isEmpty ? (
         <AppEmptyState
           icon="headset-outline"
-          title="Comece sua biblioteca"
-          description="Importe cursos, audiolivros e podcasts do Internet Archive, de links diretos ou do seu dispositivo, e ouça offline."
-          actionLabel="Importar conteúdo"
+          title={t('home.empty.title')}
+          description={t('home.empty.description')}
+          actionLabel={t('home.importContent')}
           onAction={() => navigation.navigate(Routes.Import)}
-          secondaryActionLabel="Criar coleção"
+          secondaryActionLabel={t('home.empty.createCollection')}
           onSecondaryAction={() => navigation.navigate(Routes.CollectionForm)}
         />
       ) : (
@@ -168,7 +177,7 @@ export function HomeScreen() {
         >
           {(data?.continueListening.length ?? 0) > 0 && (
             <>
-              <AppSectionHeader title="Continuar ouvindo" />
+              <AppSectionHeader title={t('home.continueListening')} />
               <FlatList
                 horizontal
                 data={data?.continueListening}
@@ -187,14 +196,14 @@ export function HomeScreen() {
             </>
           )}
 
-          <AppSectionHeader title="Sua biblioteca" />
+          <AppSectionHeader title={t('home.yourLibrary')} />
           <ShortcutGrid shortcuts={shortcuts} />
 
           {(data?.collections.length ?? 0) > 0 && (
             <>
               <AppSectionHeader
-                title="Coleções"
-                actionLabel="Ver todas"
+                title={t('home.collections')}
+                actionLabel={t('home.seeAll')}
                 onAction={() =>
                   navigation.navigate(Routes.MainTabs, { screen: Routes.CollectionsTab })
                 }
@@ -223,8 +232,8 @@ export function HomeScreen() {
           {(data?.recent.length ?? 0) > 0 && (
             <>
               <AppSectionHeader
-                title="Adicionados recentemente"
-                actionLabel="Ver tudo"
+                title={t('home.recentlyAdded')}
+                actionLabel={t('home.seeAll')}
                 onAction={() => navigation.navigate(Routes.Library)}
               />
               {data?.recent.map(item => (

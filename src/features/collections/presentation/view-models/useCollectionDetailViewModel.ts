@@ -6,7 +6,8 @@ import { feedback } from '@shared/feedback/feedbackStore';
 import { useAsyncAction } from '@shared/hooks/useAsyncAction';
 import { useDebouncedValue } from '@shared/hooks/useDebouncedValue';
 import { useQuery } from '@shared/hooks/useQuery';
-import { moveItem, pluralize } from '@core/utils';
+import { t } from '@core/i18n';
+import { moveItem } from '@core/utils';
 import type { CollectionDeletionMode, CollectionSortMode } from '../../index';
 
 /**
@@ -56,12 +57,8 @@ export function useCollectionDetailViewModel(collectionId: string) {
     const result = await downloadCommands.downloadAudios(allIds);
     feedback.info(
       result.enqueued > 0
-        ? `${pluralize(
-            result.enqueued,
-            'download adicionado',
-            'downloads adicionados',
-          )} à fila`
-        : 'Nada novo para baixar',
+        ? t('collections.downloadsQueued', { count: result.enqueued })
+        : t('collections.nothingToDownload'),
     );
   });
 
@@ -70,7 +67,7 @@ export function useCollectionDetailViewModel(collectionId: string) {
       await collections.delete(collectionId, mode);
       return true;
     },
-    { successMessage: 'Coleção excluída' },
+    { successMessage: t('collections.deleted') },
   );
   const chooseArtwork = useAsyncAction(() => collections.chooseArtwork(collectionId));
   const removeArtwork = useAsyncAction(() => collections.removeArtwork(collectionId));
@@ -92,7 +89,7 @@ export function useCollectionDetailViewModel(collectionId: string) {
       }
       setReorderIds(null);
     },
-    { successMessage: 'Ordem salva' },
+    { successMessage: t('collections.orderSaved') },
   );
 
   const play = useCallback(

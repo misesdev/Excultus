@@ -3,28 +3,34 @@ import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AppButton, AppText, AppTextInput, makeStyles } from '@design-system';
+import {
+  AppButton,
+  AppText,
+  AppTextInput,
+  makeStyles,
+  useTranslation,
+} from '@design-system';
+import type { TranslationKey } from '@core/i18n';
 import { parseHttpsUrl } from '@core/utils';
 
-const schema = z.object({
-  url: z
-    .string()
-    .trim()
-    .min(1, 'Cole um link')
-    .refine(
-      value => parseHttpsUrl(value) !== null,
-      'Use um link completo começando com https://',
-    ),
-});
+const urlSchema = (translate: (key: TranslationKey) => string) =>
+  z.object({
+    url: z
+      .string()
+      .trim()
+      .min(1, translate('imports.url.required'))
+      .refine(value => parseHttpsUrl(value) !== null, translate('imports.url.invalid')),
+  });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof urlSchema>>;
 
 export const EXAMPLE_URL = 'https://archive.org/details/COFemAudio';
 
 export function ImportUrlForm({ onSubmit }: { onSubmit: (url: string) => void }) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const { control, handleSubmit, setValue, formState } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(urlSchema(t)),
     defaultValues: { url: '' },
   });
   const submit = handleSubmit(values => onSubmit(values.url));
@@ -36,7 +42,7 @@ export function ImportUrlForm({ onSubmit }: { onSubmit: (url: string) => void })
         name="url"
         render={({ field }) => (
           <AppTextInput
-            label="Link do conteúdo"
+            label={t('imports.url.label')}
             placeholder="https://archive.org/details/…"
             value={field.value}
             onChangeText={field.onChange}
@@ -53,7 +59,7 @@ export function ImportUrlForm({ onSubmit }: { onSubmit: (url: string) => void })
         )}
       />
       <AppButton
-        label="Buscar conteúdo"
+        label={t('imports.url.submit')}
         icon="search"
         onPress={submit}
         fullWidth
@@ -66,7 +72,7 @@ export function ImportUrlForm({ onSubmit }: { onSubmit: (url: string) => void })
         accessibilityRole="button"
         testID="import-example"
       >
-        Usar exemplo: archive.org/details/COFemAudio
+        {t('imports.url.example', { url: 'archive.org/details/COFemAudio' })}
       </AppText>
     </View>
   );

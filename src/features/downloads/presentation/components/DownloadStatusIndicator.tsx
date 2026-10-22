@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AppIcon, AppText, makeStyles } from '@design-system';
+import { AppIcon, AppText, makeStyles, useTranslation } from '@design-system';
 import type { OfflineState } from '@features/audios';
 import { formatPercent } from '@core/utils';
 import { downloadProgress } from '../../index';
@@ -17,6 +17,7 @@ export function DownloadStatusIndicator({
   audioId: string;
   offline: OfflineState;
 }) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const active = useActiveDownload(audioId);
   const status = active?.status;
@@ -24,7 +25,12 @@ export function DownloadStatusIndicator({
   if (status === 'downloading' && active) {
     const ratio = downloadProgress(active);
     return (
-      <View style={styles.root} accessibilityLabel={`Baixando ${formatPercent(ratio)}`}>
+      <View
+        style={styles.root}
+        accessibilityLabel={t('downloads.downloadingPercent', {
+          percent: formatPercent(ratio),
+        })}
+      >
         <AppText variant="mono" color="primary">
           {formatPercent(ratio)}
         </AppText>
@@ -41,7 +47,7 @@ export function DownloadStatusIndicator({
       <View
         style={styles.root}
         accessibilityLabel={
-          status === 'paused' ? 'Download pausado' : 'Na fila de download'
+          status === 'paused' ? t('downloads.pausedLabel') : t('downloads.queuedLabel')
         }
       >
         <AppIcon
@@ -58,14 +64,14 @@ export function DownloadStatusIndicator({
   }
   if (status === 'failed' || offline === 'failed') {
     return (
-      <View style={styles.root} accessibilityLabel="Download com falha">
+      <View style={styles.root} accessibilityLabel={t('downloads.failedLabel')}>
         <AppIcon name="alert-circle-outline" size="sm" color="error" />
       </View>
     );
   }
   if (offline === 'available') {
     return (
-      <View style={styles.root} accessibilityLabel="Disponível offline">
+      <View style={styles.root} accessibilityLabel={t('downloads.availableOffline')}>
         <AppIcon name="arrow-down-circle" size="sm" color="success" />
       </View>
     );

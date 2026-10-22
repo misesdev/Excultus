@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { makeStyles } from '../theme/ThemeProvider';
 import { AppText } from '../typography/AppText';
 import { AppIconButton } from './AppIconButton';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface AppHeaderProps {
   title?: string;
@@ -22,6 +23,7 @@ export function AppHeader({
   backIcon = 'arrow-back',
   actions,
 }: AppHeaderProps) {
+  const { t } = useTranslation();
   const styles = useStyles();
   const large = variant === 'large';
 
@@ -30,7 +32,7 @@ export function AppHeader({
       {onBack && (
         <AppIconButton
           icon={backIcon}
-          accessibilityLabel="Voltar"
+          accessibilityLabel={t('common.back')}
           onPress={onBack}
           testID="header-back"
         />

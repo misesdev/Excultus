@@ -1,217 +1,241 @@
 # Excultus
 
 <p align="center">
-  <img src="android/app/src/main/ic_launcher-playstore.png" alt="Ícone do Excultus" width="120" />
+  <img src="android/app/src/main/ic_launcher-playstore.png" alt="Excultus icon" width="120" />
 </p>
 
-Aplicativo Android de código aberto para importar, organizar, baixar e ouvir conteúdos de áudio
-(cursos, audiolivros, podcasts e músicas). É **offline-first**: não tem conta, backend nem
-analytics. Tudo fica no seu aparelho.
+<p align="center">
+  <a href="https://zapstore.dev/app/com.excultus">Get it on Zapstore</a> ·
+  <a href="https://github.com/misesdev/Excultus/releases/latest">Download the APK</a>
+</p>
 
-Feito com React Native CLI (**sem Expo**), nova arquitetura (TurboModules) e TypeScript estrito.
+Open-source Android app to import, organize, download and listen to audio content: courses,
+audiobooks, podcasts and music. It is **offline-first**: no account, no backend, no analytics.
+Everything stays on your device.
 
-## Funcionalidades
+Built with React Native CLI (**no Expo**), the new architecture (TurboModules) and strict
+TypeScript.
 
-- **Importação**
-  - itens do **Internet Archive** (ex.: `https://archive.org/details/COFemAudio`);
-  - links diretos de áudio;
-  - arquivos do próprio dispositivo;
-  - vídeos e playlists do **YouTube**: o áudio é baixado em M4A e o app avisa quando um vídeo
-    não pode ser baixado (o link nunca é salvo sozinho).
-- **Downloads persistentes**
-  - fila com concorrência configurável, pausa e retomada por HTTP Range, e novas tentativas
-    com backoff;
-  - validação de integridade (tamanho e MD5) e controle de espaço em disco.
-- **Player em segundo plano**
-  - notificação de mídia, tela bloqueada e controles de fone;
-  - velocidade, saltos, repetir e aleatório, fila, temporizador, marcadores e retomada de onde
-    parou;
-  - áudios que não podem tocar no momento (sem arquivo ou sem internet) são pulados
-    automaticamente.
-- **Organização:** coleções, playlists, favoritos, histórico, busca de texto completo (SQLite
-  FTS5), filtros e ordenação.
-- **Manutenção:** backup e restauração em JSON, verificação e limpeza do armazenamento.
+> The interface is available in **English** and **Portuguese**. It follows the device
+> language (English when it isn't supported) and can be changed under Settings → Language.
+
+## Screenshots
+
+<p align="center">
+  <img src="store/screenshots/01-home.jpg" alt="Home: continue listening and library shortcuts" width="200" />
+  <img src="store/screenshots/02-collections.jpg" alt="Collections" width="200" />
+  <img src="store/screenshots/03-player.jpg" alt="Full-screen player" width="200" />
+  <img src="store/screenshots/04-downloads.jpg" alt="Downloads and storage usage" width="200" />
+</p>
+
+## Features
+
+- **Import**
+  - items from the **Internet Archive** (e.g. `https://archive.org/details/COFemAudio`);
+  - direct audio links;
+  - files from the device;
+  - **YouTube** videos and playlists: the audio is downloaded as M4A, and the app tells you
+    when a video can't be downloaded (it never saves a bare link).
+- **Persistent downloads**
+  - queue with configurable concurrency, pause and resume via HTTP Range, and retries with
+    backoff;
+  - integrity checks (size and MD5) and disk space control.
+- **Background player**
+  - media notification, lock screen and headset controls;
+  - playback speed, skip, repeat and shuffle, queue, sleep timer, bookmarks and resume where
+    you left off;
+  - audio that can't play right now (no file or no connection) is skipped automatically.
+- **Organization:** collections, playlists, favorites, history, full-text search (SQLite FTS5),
+  filters and sorting.
+- **Maintenance:** JSON backup and restore, storage verification and cleanup.
+- **Languages:** English and Portuguese, following the device language or the choice in
+  Settings.
 
 ## Stack
 
-| Área | Tecnologia |
+| Area | Technology |
 |---|---|
 | App | React Native 0.88, React 19, TypeScript, React Navigation 7 |
-| Estado e formulários | Zustand, React Hook Form + Zod |
-| Banco de dados | SQLite via `@op-engineering/op-sqlite` (FTS5, migrações versionadas) |
-| Áudio | `react-native-track-player` (com patches em `patches/`) |
-| Nativo (Kotlin) | Downloader com OkHttp (download em blocos e remux de MP4 fragmentado); resolução do YouTube com [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor) |
-| Testes | Jest, React Native Testing Library, SQLite real em Node, Maestro (E2E) |
+| State and forms | Zustand, React Hook Form + Zod |
+| Database | SQLite via `@op-engineering/op-sqlite` (FTS5, versioned migrations) |
+| Audio | `react-native-track-player` (with patches in `patches/`) |
+| Native (Kotlin) | OkHttp downloader (chunked downloads and fragmented MP4 remuxing); YouTube resolution with [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor) |
+| Tests | Jest, React Native Testing Library, real SQLite on Node, Maestro (E2E) |
 
-## Requisitos
+## Requirements
 
-| Ferramenta | Versão |
+| Tool | Version |
 |---|---|
-| Node.js | 22.22+ (`.nvmrc`); o RN 0.88 exige ≥ 22.11 |
-| JDK | 17 ou 21 **completo** (com `javac`), por exemplo o JBR do Android Studio |
+| Node.js | 22.22+ (`.nvmrc`); RN 0.88 requires ≥ 22.11 |
+| JDK | A **full** JDK 17 or 21 (with `javac`), e.g. Android Studio's JBR |
 | Android SDK | Platform 36, Build-Tools 36, NDK 27.1.12297006 |
-| Dispositivo | Android 7.0+ (minSdk 24) |
+| Device | Android 7.0+ (minSdk 24) |
 
-> Se o Java padrão do sistema for só um JRE, o Gradle falha com um erro de toolchain sem
-> `JAVA_COMPILER`. Fixe o JDK em `~/.gradle/gradle.properties`:
+> If the system's default Java is only a JRE, Gradle fails with a toolchain error about a
+> missing `JAVA_COMPILER`. Pin the JDK in `~/.gradle/gradle.properties`:
 >
 > ```properties
-> org.gradle.java.home=/caminho/do/jdk
+> org.gradle.java.home=/path/to/jdk
 > org.gradle.java.installations.auto-detect=false
-> org.gradle.java.installations.paths=/caminho/do/jdk
+> org.gradle.java.installations.paths=/path/to/jdk
 > ```
 >
-> Depois rode `cd android && ./gradlew --stop`.
+> Then run `cd android && ./gradlew --stop`.
 
-## Como rodar
+## Getting started
 
 ```bash
 nvm use            # Node 22
-npm install        # também aplica patches/ (patch-package no postinstall)
+npm install        # also applies patches/ (patch-package on postinstall)
 npm start          # Metro
-npm run android    # build debug e instala no emulador ou dispositivo
+npm run android    # debug build, installed on the emulator or device
 ```
 
 ## Scripts
 
-| Script | O que faz |
+| Script | What it does |
 |---|---|
-| `npm run validate` | typecheck, lint e testes |
+| `npm run validate` | typecheck, lint and tests |
 | `npm run typecheck` | `tsc --noEmit` (strict) |
-| `npm run lint` | ESLint, incluindo regras de fronteira entre camadas |
-| `npm test` / `npm run test:coverage` | Jest (unitários, integração com SQLite e componentes) |
-| `npm run e2e` / `npm run e2e:offline` | Fluxos Maestro (ver [`docs/testing.md`](docs/testing.md)) |
-| `npm run android:release` | APK de release |
-| `npm run zapstore:check` / `npm run zapstore:publish` | Confere / publica a release no Zapstore (requer `zsp`) |
+| `npm run lint` | ESLint, including layer-boundary rules |
+| `npm test` / `npm run test:coverage` | Jest (unit, SQLite integration and component tests) |
+| `npm run e2e` / `npm run e2e:offline` | Maestro flows (see [`docs/testing.md`](docs/testing.md)) |
+| `npm run android:release` | Release APK |
+| `npm run zapstore:check` / `npm run zapstore:publish` | Check / publish the release on Zapstore (requires `zsp`) |
 
-Hooks Git (Husky): o `pre-commit` roda lint-staged e typecheck; o `pre-push` roda os testes.
+Git hooks (Husky): `pre-commit` runs lint-staged and typecheck; `pre-push` runs the tests.
 
-## Build de release (APK e AAB)
+## Release build (APK and AAB)
 
-O release é assinado com uma chave que **nunca entra no repositório**. Crie a sua:
+Releases are signed with a key that **never goes into the repository**. Create your own:
 
 ```bash
 keytool -genkeypair -v -storetype PKCS12 -keystore ~/.android/excultus-release.jks \
   -alias excultus -keyalg RSA -keysize 4096 -validity 10000
 ```
 
-Depois informe o caminho e as senhas em `~/.gradle/gradle.properties`, fora do projeto:
+Then set its path and passwords in `~/.gradle/gradle.properties`, outside the project:
 
 ```properties
-EXCULTUS_RELEASE_STORE_FILE=/home/<você>/.android/excultus-release.jks
+EXCULTUS_RELEASE_STORE_FILE=/home/<you>/.android/excultus-release.jks
 EXCULTUS_RELEASE_STORE_PASSWORD=...
 EXCULTUS_RELEASE_KEY_ALIAS=excultus
 EXCULTUS_RELEASE_KEY_PASSWORD=...
 ```
 
-Para gerar o APK e o AAB:
+To build the APK and the AAB:
 
 ```bash
 cd android && ./gradlew assembleRelease bundleRelease
-# APK: android/app/build/outputs/apk/release/app-release.apk    (instalação direta)
+# APK: android/app/build/outputs/apk/release/app-release.apk    (direct install)
 # AAB: android/app/build/outputs/bundle/release/app-release.aab  (Play Store)
 ```
 
-- **Sem as propriedades:** o build usa a chave de debug e avisa no log. Esse resultado não serve
-  para publicação.
-- **Backup:** guarde o keystore e as senhas. Sem eles não dá para publicar atualizações.
-- **Nova versão:** incremente `versionCode` e ajuste `versionName` em
-  `android/app/build.gradle`, use a mesma versão no `package.json` e registre as mudanças no
+- **Without these properties** the build falls back to the debug key and logs a warning. That
+  output is not publishable.
+- **Back up** the keystore and its passwords. Without them you can't publish updates.
+- **New version:** increment `versionCode` and set `versionName` in
+  `android/app/build.gradle`, use the same version in `package.json`, and record the changes in
   [`CHANGELOG.md`](CHANGELOG.md).
-- **Trocar de debug para release:** um app debug instalado tem outra assinatura, então é preciso
-  desinstalá-lo antes de instalar o release no mesmo aparelho, e isso apaga os dados locais.
+- **Switching from debug to release:** an installed debug build has a different signature, so it
+  must be uninstalled before installing the release on the same device, which wipes local data.
 
-## Publicação no Zapstore
+## Publishing on Zapstore
 
-O app é distribuído pelo [Zapstore](https://zapstore.dev), uma loja Android descentralizada
-sobre Nostr, com a configuração em [`zapstore.yaml`](zapstore.yaml). A cada push na `main`
-com uma versão nova, o workflow [`release.yml`](.github/workflows/release.yml):
+The app is distributed on [Zapstore](https://zapstore.dev), a decentralized Android app store
+built on Nostr, configured in [`zapstore.yaml`](zapstore.yaml). On every push to `main` with a
+new version, the [`release.yml`](.github/workflows/release.yml) workflow:
 
-1. gera o APK assinado;
-2. cria o GitHub Release `v<versão>` com as notas do `CHANGELOG.md`;
-3. publica no Zapstore com o [`zsp`](https://github.com/zapstore/zsp).
+1. builds the signed APK;
+2. creates the GitHub Release `v<version>` with the notes from `CHANGELOG.md`;
+3. publishes to Zapstore with [`zsp`](https://github.com/zapstore/zsp).
 
-Para publicar manualmente: `npm run zapstore:check` e depois `npm run zapstore:publish`.
-Secrets necessários, vínculo da chave de assinatura à identidade Nostr e passo a passo em
+To publish manually: `npm run zapstore:check`, then `npm run zapstore:publish`. Required
+secrets, linking the signing key to your Nostr identity, and the step-by-step guide are in
 [`docs/zapstore.md`](docs/zapstore.md).
 
-## Ícone do app
+## App icon
 
-A arte original está em `AppIcon.png`. Todos os ícones são gerados a partir dela por
-`python3 scripts/app-icon/generate.py` (requer Pillow):
+The original artwork is `AppIcon.png`. Every icon is generated from it by
+`python3 scripts/app-icon/generate.py` (requires Pillow):
 
-- ícone adaptativo do Android (camadas de frente, fundo e monocromática), com o símbolo dentro
-  da zona segura para que nenhuma máscara corte;
-- ícones legados do Android 7;
-- ícone da Play Store e ícones do iOS;
-- ícone branco da notificação de mídia.
+- Android adaptive icon (foreground, background and monochrome layers), with the symbol inside
+  the safe zone so no mask clips it;
+- legacy icons for Android 7;
+- Play Store and iOS icons;
+- white media notification icon.
 
-Para trocar o ícone, substitua `AppIcon.png` e rode o script.
+To change the icon, replace `AppIcon.png` and run the script.
 
-## Estrutura
+## Project structure
 
 ```text
 src/
-├── app/            composition root (DI), bootstrap, navegação, providers
-├── core/           erros tipados, portas compartilhadas, utilitários puros
-├── design-system/  tokens, tema, ícones, tipografia, animações e componentes App*
+├── app/            composition root (DI), bootstrap, navigation, providers
+├── core/           typed errors, shared ports, i18n catalogs (en, pt), pure utilities
+├── design-system/  tokens, theme, icons, typography, animations and App* components
 ├── features/       audios, collections, downloads, imports, player, playlists, bookmarks,
-│                   history, search, settings (+ library e home: composição de UI)
-├── infrastructure/ SQLite, sistema de arquivos, HTTP, fontes externas (Archive, YouTube),
-│                   áudio, downloader
-└── shared/         hooks de apresentação, formulários, feedback (toast/snackbar)
-specs/              specs TurboModule (codegen): downloader e YouTube
+│                   history, search, settings (+ library and home: UI composition)
+├── infrastructure/ SQLite, file system, HTTP, external sources (Archive, YouTube),
+│                   audio, downloader
+└── shared/         presentation hooks, forms, feedback (toast/snackbar)
+specs/              TurboModule specs (codegen): downloader and YouTube
 android/app/src/main/java/com/excultus/
-├── downloads/      downloader OkHttp e remux de MP4 fragmentado
-└── youtube/        resolução de vídeos e playlists com NewPipeExtractor
-scripts/app-icon/   gerador de ícones
-test/               fixtures, fakes e suporte de testes
-e2e/flows/          fluxos Maestro
+├── downloads/      OkHttp downloader and fragmented MP4 remuxing
+└── youtube/        video and playlist resolution with NewPipeExtractor
+scripts/app-icon/   icon generator
+store/screenshots/  store screenshots
+test/               fixtures, fakes and test support
+e2e/flows/          Maestro flows
 ```
 
-A arquitetura é limpa e organizada por feature: domínio e aplicação não conhecem React Native, e
-as dependências de plataforma entram por portas e adaptadores. Os detalhes estão em
-[`docs/architecture.md`](docs/architecture.md) e as decisões em
+Clean architecture organized by feature: the domain and application layers know nothing about
+React Native, and platform dependencies come in through ports and adapters. Details in
+[`docs/architecture.md`](docs/architecture.md); decisions in
 [`docs/decisions/`](docs/decisions).
 
-## Documentação
+## Documentation
 
-- [Arquitetura](docs/architecture.md) · [Design System](docs/design-system.md) · [Banco de dados](docs/database.md)
-- [Player](docs/audio-player.md) · [Downloads](docs/downloads.md) · [Fontes externas](docs/external-sources.md)
-- [Publicação no Zapstore](docs/zapstore.md) · [Changelog](CHANGELOG.md)
-- [Testes](docs/testing.md) · [Plano](docs/implementation-plan.md) · [Progresso](docs/progress.md) · [Problemas conhecidos](docs/known-issues.md)
+The technical docs below are written in Portuguese.
 
-## Privacidade
+- [Architecture](docs/architecture.md) · [Design system](docs/design-system.md) · [Database](docs/database.md)
+- [Player](docs/audio-player.md) · [Downloads](docs/downloads.md) · [External sources](docs/external-sources.md)
+- [Testing](docs/testing.md) · [Plan](docs/implementation-plan.md) · [Progress](docs/progress.md) · [Known issues](docs/known-issues.md)
+- [Internationalization (ADR 0007)](docs/decisions/0007-internacionalizacao.md)
 
-- **Rede:** o app só faz requisições às fontes que você importa. Não há analytics nem conta.
-- **Armazenamento:** os arquivos ficam em diretórios privados do app.
-- **Arquivos do dispositivo:** entram pelo seletor do sistema (SAF), sem permissões amplas de
-  armazenamento.
+In English: [Publishing on Zapstore](docs/zapstore.md) · [Changelog](CHANGELOG.md)
 
-## Uso responsável
+## Privacy
 
-O Excultus é uma ferramenta para montar sua biblioteca pessoal. Baixe apenas conteúdo que você
-tem direito de usar e respeite os termos de serviço de cada fonte, inclusive os do YouTube. A
-extração do YouTube depende da NewPipeExtractor e pode parar de funcionar quando o site muda,
-até que a biblioteca seja atualizada.
+- **Network:** the app only talks to the sources you import from. No analytics, no account.
+- **Storage:** files are kept in the app's private directories.
+- **Device files:** come in through the system picker (SAF), without broad storage permissions.
 
-## Contribuindo
+## Responsible use
 
-Issues e pull requests são bem-vindos. Antes de abrir um PR:
+Excultus is a tool for building your personal library. Only download content you have the right
+to use, and respect each source's terms of service, including YouTube's. YouTube extraction
+relies on NewPipeExtractor and may stop working when the site changes, until the library is
+updated.
 
-1. rode `npm run validate` (typecheck, lint e testes precisam passar);
-2. cubra o comportamento novo com testes;
-3. registre decisões de arquitetura relevantes em `docs/decisions/`.
+## Contributing
 
-## Licença
+Issues and pull requests are welcome. Before opening a PR:
+
+1. run `npm run validate` (typecheck, lint and tests must pass);
+2. cover new behavior with tests;
+3. record relevant architecture decisions in `docs/decisions/`.
+
+## License
 
 Copyright © 2026 Mises Dev
 
-Este programa é software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da
-**GNU General Public License**, publicada pela Free Software Foundation, na versão 3 ou (a seu
-critério) qualquer versão posterior (**GPL-3.0-or-later**). Ele é distribuído na esperança de
-ser útil, mas **sem nenhuma garantia**. Veja o texto completo em [`LICENSE`](LICENSE).
+This program is free software: you can redistribute it and/or modify it under the terms of the
+**GNU General Public License** as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version (**GPL-3.0-or-later**). It is distributed
+in the hope that it will be useful, but **WITHOUT ANY WARRANTY**. See [`LICENSE`](LICENSE) for
+the full text.
 
-A GPLv3 é necessária porque o app inclui a
-[NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor), licenciada sob GPLv3. As
-demais dependências usam licenças compatíveis (MIT, Apache-2.0 e similares).
+GPLv3 is required because the app includes
+[NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor), which is licensed under
+GPLv3. All other dependencies use compatible licenses (MIT, Apache-2.0 and similar).

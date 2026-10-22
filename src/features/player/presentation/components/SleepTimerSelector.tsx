@@ -1,20 +1,24 @@
 import React from 'react';
 import { useDependencies } from '@app/dependency-injection/DependenciesContext';
+import { t } from '@core/i18n';
 import { formatHumanDuration } from '@core/utils';
+import { useTranslation } from '@design-system';
 import { OptionSheet } from '@shared/components/OptionSheet';
 import { createDurationTimer, SLEEP_TIMER_MINUTES, type SleepTimer } from '../../index';
 import { usePlayerStore } from '../store/playerStore';
 
 type TimerOption = 'off' | 'end-of-track' | `${number}`;
 
-const OPTIONS: Array<{ value: TimerOption; label: string }> = [
-  { value: 'off', label: 'Desligado' },
-  ...SLEEP_TIMER_MINUTES.map(minutes => ({
-    value: `${minutes}` as TimerOption,
-    label: formatHumanDuration(minutes * 60 * 1000),
-  })),
-  { value: 'end-of-track', label: 'Ao fim da faixa atual' },
-];
+function timerOptions(): Array<{ value: TimerOption; label: string }> {
+  return [
+    { value: 'off', label: t('player.timer.off') },
+    ...SLEEP_TIMER_MINUTES.map(minutes => ({
+      value: `${minutes}` as TimerOption,
+      label: formatHumanDuration(minutes * 60 * 1000),
+    })),
+    { value: 'end-of-track', label: t('player.timer.endOfTrack') },
+  ];
+}
 
 function toOption(timer: SleepTimer | undefined): TimerOption {
   if (!timer) {
@@ -34,11 +38,12 @@ export function SleepTimerSelector({
 }) {
   const { player } = useDependencies();
   const timer = usePlayerStore(state => state.sleepTimer);
+  useTranslation();
   return (
     <OptionSheet
       visible={visible}
-      title="Temporizador"
-      options={OPTIONS}
+      title={t('player.timer.title')}
+      options={timerOptions()}
       selected={toOption(timer)}
       onClose={onClose}
       onSelect={value => {
